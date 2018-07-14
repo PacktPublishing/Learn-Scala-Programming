@@ -30,7 +30,7 @@ object Manager {
     val chef = context.spawn(Chef.idle, "Chef")
     val cook = context.spawn(Cook.form, "Cook")
     val baker = context.spawn(Baker.turnOvenOn, "Baker")
-    val _ = context.spawn(Bakery.seller, "Seller")
+    // val _ = context.spawn(Bakery.seller, "Seller")
 
     Behaviors.withTimers { timers =>
       timers.startPeriodicTimer(Anxiety, StartBaking, idleTimeout)
