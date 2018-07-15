@@ -6,10 +6,11 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.receptionist.Receptionist._
 import ch12.Bakery.Groceries
 import ch12.Manager.ReceiveGroceries
-import ch12.Shop.{config, seller}
+import ch12.Shop.seller
 import com.typesafe.config.ConfigFactory
 
 object ShopApp extends App {
+  val config = ConfigFactory.load("grocery.conf")
   val system = ActorSystem(seller, "Typed-Bakery", config)
 }
 object Shop {
@@ -21,7 +22,6 @@ object Shop {
                               toWhom: ActorRef[Manager.Command])
 
   val SellerKey = ServiceKey[SellByList]("GrocerySeller")
-  val config = ConfigFactory.load("grocery.conf")
 
   val seller: Behavior[SellByList] = Behaviors.setup { ctx ⇒
     ctx.system.receptionist ! Register(SellerKey, ctx.self)
