@@ -8,7 +8,7 @@ import ch12.Oven.{Extract, Put}
 import scala.concurrent.duration._
 
 object Baker {
-  private val DefaultBakingTime = 2.seconds
+  val DefaultBakingTime: FiniteDuration = 2.seconds
   private val TimerKey = 'TimerKey
   sealed trait Command
   final case class BakeCookies(raw: RawCookies,

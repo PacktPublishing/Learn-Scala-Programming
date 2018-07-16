@@ -26,8 +26,8 @@ object Manager {
 
   val openBakery: Behavior[Command] = Behaviors.setup { context =>
     context.log.info("Opening Bakery")
-
-    val chef = context.spawn(Chef.idle, "Chef")
+    val mixerBuilder = Mixer.mix(3.seconds)
+    val chef = context.spawn(Chef.idle(mixerBuilder), "Chef")
     val cook = context.spawn(Cook.form, "Cook")
     val baker = context.spawn(Baker.turnOvenOn, "Baker")
     // val _ = context.spawn(Bakery.seller, "Seller")
