@@ -6,22 +6,26 @@ import ch12.Bakery.{Groceries, Pastry}
 import ch12.Manager.ReceivePastry
 
 object Chef {
+
   sealed trait Command
 
   final case class Mix(g: Groceries, manager: ActorRef[Manager.Command])
-      extends Command
+    extends Command
+
   final case class Collect(p: Pastry, mixer: ActorRef[Mixer.Mix])
-      extends Command
+    extends Command
+
+  final case class BrokenMixer(mixer: ActorRef[Mixer.Mix]) extends Command
 
   def idle(mixerFactory: Behavior[Mixer.Mix]): Behaviors.Receive[Command] =
     Behaviors.receivePartial[Command] {
       case (context,
-            mix @ Mix(Groceries(eggs, flour, sugar, chocolate), manager)) =>
+      mix@Mix(Groceries(eggs, flour, sugar, chocolate), manager)) =>
         val mixers = for (i <- 1 to eggs)
           yield
             context.spawn(mixerFactory,
-                          s"Mixer_$i",
-                          DispatcherSelector.fromConfig("mixers-dispatcher"))
+              s"Mixer_$i",
+              DispatcherSelector.fromConfig("mixers-dispatcher"))
         mixers.foreach(_ ! Mixer.Mix(mix.g, context.self))
         mixing(mixers.toSet, 0, manager, mixerFactory)
     }
@@ -41,5 +45,10 @@ object Chef {
         } else {
           mixing(mixersToGo, pastryBuf, manager, mixerBuilder)
         }
+      case (context, BrokenMixer(m)) =>
+        context.log.warning("Broken mixer detected {}", m)
+        context.self ! Collect(Pastry(0), m)
+        Behaviors.same
     }
+
 }
