@@ -4,7 +4,7 @@ import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.receptionist.Receptionist.{Find, Listing}
 import akka.actor.typed.scaladsl.Behaviors
 import akka.util.Timeout
-import ch12.Bakery.{Groceries, Pastry, RawCookies, ReadyCookies}
+import ch12.Bakery.{Groceries, Dough, RawCookies, ReadyCookies}
 import ch12.Boy.GoShopping
 import ch12.Shop.{SellByList, ShoppingList}
 
@@ -20,7 +20,7 @@ object Manager {
   final case class OneSeller(seller: ActorRef[SellByList]) extends Command
   final case object NoSeller extends Command
   final case class ReceiveGroceries(groceries: Groceries) extends Command
-  final case class ReceivePastry(pastry: Pastry) extends Command
+  final case class ReceiveDough(dough: Dough) extends Command
   final case class ReceiveRawCookies(cookies: RawCookies) extends Command
   final case class ReceiveReadyCookies(cookies: ReadyCookies) extends Command
 
@@ -80,9 +80,9 @@ object Manager {
             chef ! Chef.Mix(g, context.self)
             manage(chef, cook, baker)
         }
-      def waitingForPastry: Behavior[Command] =
+      def waitingFordough: Behavior[Command] =
         Behaviors.receiveMessagePartial[Command] {
-          case ReceivePastry(p) =>
+          case ReceiveDough(p) =>
             context.log.info("Forming {}", p)
             cook ! Cook.FormCookies(p, context.self)
             manage(chef, cook, baker)
@@ -104,7 +104,7 @@ object Manager {
       lookupSeller orElse
         sendBoyShopping orElse
         waitingForGroceries orElse
-        waitingForPastry orElse
+        waitingFordough orElse
         waitingForRawCookies orElse
         waitingForReadyCookies
 

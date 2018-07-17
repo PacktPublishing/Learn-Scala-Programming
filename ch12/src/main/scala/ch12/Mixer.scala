@@ -2,7 +2,7 @@ package ch12
 
 import akka.actor.typed.{ActorRef, Behavior, SupervisorStrategy}
 import akka.actor.typed.scaladsl.Behaviors
-import ch12.Bakery.{Groceries, Pastry}
+import ch12.Bakery.{Groceries, Dough}
 import ch12.Chef.Collect
 
 import scala.concurrent.duration.FiniteDuration
@@ -19,7 +19,7 @@ object Mixer {
     case (ctx, Mix(Groceries(eggs, flour, sugar, chocolate), sender)) =>
       if (Random.nextBoolean()) throw new MotorOverheatException
       Thread.sleep(mixTime.toMillis)
-      sender ! Collect(Pastry(eggs * 50 + flour + sugar + chocolate), ctx.self)
+      sender ! Collect(Dough(eggs * 50 + flour + sugar + chocolate), ctx.self)
       Behaviors.stopped
   }
 

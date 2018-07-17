@@ -2,8 +2,8 @@ package ch12
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior, DispatcherSelector}
-import ch12.Bakery.{Groceries, Pastry}
-import ch12.Manager.ReceivePastry
+import ch12.Bakery.{Groceries, Dough}
+import ch12.Manager.ReceiveDough
 
 object Chef {
 
@@ -12,7 +12,7 @@ object Chef {
   final case class Mix(g: Groceries, manager: ActorRef[Manager.Command])
     extends Command
 
-  final case class Collect(p: Pastry, mixer: ActorRef[Mixer.Mix])
+  final case class Collect(p: Dough, mixer: ActorRef[Mixer.Mix])
     extends Command
 
   final case class BrokenMixer(mixer: ActorRef[Mixer.Mix]) extends Command
@@ -35,19 +35,19 @@ object Chef {
              manager: ActorRef[Manager.Command],
              mixerBuilder: Behavior[Mixer.Mix]): Behaviors.Receive[Command] =
     Behaviors.receivePartial {
-      case (context, Collect(pastry, mixer)) =>
+      case (context, Collect(dough, mixer)) =>
         val mixersToGo = mixers - mixer
-        val pastryBuf = collected + pastry.weight
+        val doughBuf = collected + dough.weight
         context.stop(mixer)
         if (mixersToGo.isEmpty) {
-          manager ! ReceivePastry(Pastry(pastryBuf))
+          manager ! ReceiveDough(Dough(doughBuf))
           idle(mixerBuilder)
         } else {
-          mixing(mixersToGo, pastryBuf, manager, mixerBuilder)
+          mixing(mixersToGo, doughBuf, manager, mixerBuilder)
         }
       case (context, BrokenMixer(m)) =>
         context.log.warning("Broken mixer detected {}", m)
-        context.self ! Collect(Pastry(0), m)
+        context.self ! Collect(Dough(0), m)
         Behaviors.same
     }
 
