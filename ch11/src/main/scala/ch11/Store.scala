@@ -11,7 +11,6 @@ abstract class Store {
   lazy val seller: ActorRef = store.actorOf(Props(new Actor {
     override def receive: Receive = {
       case s: ShoppingList =>
-        println("SHOPPING:" + sender().path)
         ShoppingList.unapply(s).map(Groceries.tupled).foreach(sender() ! _)
     }
   }), "Seller")

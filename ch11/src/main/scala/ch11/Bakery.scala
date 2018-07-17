@@ -3,11 +3,11 @@ package ch11
 import akka.actor._
 import akka.event.LoggingReceive
 import akka.util.Timeout
-import Cook.{LazyWorkerException, Pastry, RawCookies}
+import Cook.{LazyWorkerException, Dough, RawCookies}
 import Mixer.{Groceries, MotorOverheatException, SlowRotationSpeedException, StrongVibrationException}
 import Oven.{Cookies, Extract}
 
-import scala.concurrent.duration.{FiniteDuration, _}
+import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.util.Random
 import akka.actor.SupervisorStrategy._
@@ -27,7 +27,7 @@ object Manager {
                                 flour: Int,
                                 sugar: Int,
                                 chocolate: Int)
-      extends Data
+    extends Data
 
   def shoppingList: ShoppingList = {
     val eggs = Random.nextInt(20) + 5
@@ -54,14 +54,14 @@ class Manager extends FSM[State, Data] {
 
   when(Shopping) {
     case Event(g: Groceries, s: ShoppingList)
-        if g.productIterator sameElements s.productIterator ⇒
+      if g.productIterator sameElements s.productIterator ⇒
       goto(Mixing) using g
     case Event(_: Groceries, _: ShoppingList) ⇒
       goto(Idle) using Uninitialized
   }
 
   when(Mixing) {
-    case Event(p: Pastry, _) ⇒
+    case Event(p: Dough, _) ⇒
       goto(Forming) using p
   }
 
@@ -124,7 +124,7 @@ class Boy(seller: ActorSelection) extends Actor {
 }
 object Mixer {
   final case class Groceries(eggs: Int, flour: Int, sugar: Int, chocolate: Int)
-      extends Data
+    extends Data
   def props: Props = Props[Mixer].withDispatcher("mixers-dispatcher")
   class MotorOverheatException extends Exception
   class SlowRotationSpeedException extends Exception
@@ -144,7 +144,7 @@ class Mixer extends Actor with ActorLogging {
         throw new SlowRotationSpeedException
       }
       Thread.sleep(3000)
-      sender() ! Pastry(eggs * 50 + flour + sugar + chocolate)
+      sender() ! Dough(eggs * 50 + flour + sugar + chocolate)
   }
 }
 
@@ -159,7 +159,7 @@ class Chef extends Actor with ActorLogging with Stash {
         val mixer = context.watch(context.actorOf(Mixer.props, s"Mixer_$i"))
         message = Groceries(1, flour / eggs, sugar / eggs, chocolate / eggs)
         import akka.pattern.ask
-        val job = (mixer ? message).mapTo[Pastry]
+        val job = (mixer ? message).mapTo[Dough]
         import akka.pattern.pipe
         import context.dispatcher
         job.pipeTo(self)
@@ -171,16 +171,16 @@ class Chef extends Actor with ActorLogging with Stash {
   }
   def waitingForResults(mixers: Int, weight: Int): Receive = {
     case g: Groceries => stash()
-    case p: Pastry =>
+    case p: Dough =>
       if (mixers <= 1) {
-        manager ! Pastry(weight)
+        manager ! Dough(weight)
         context.children.foreach(context.stop)
         unstashAll()
         context.unbecome()
         log.info("Ready to accept new mixing jobs")
       } else {
         context.become(waitingForResults(mixers - 1, weight + p.weight),
-                       discardOld = true)
+          discardOld = true)
       }
     case Terminated(child) =>
       log.debug(s"Terminated: $child")
@@ -189,7 +189,7 @@ class Chef extends Actor with ActorLogging with Stash {
   override val supervisorStrategy: OneForOneStrategy =
     OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 minute) {
       case _: MotorOverheatException ⇒
-        self ! Pastry(0)
+        self ! Dough(0)
         Stop
       case _: SlowRotationSpeedException ⇒
         sender() ! message
@@ -232,14 +232,14 @@ class Baker(bakingTime: FiniteDuration) extends Actor {
 }
 
 object Cook {
-  final case class Pastry(weight: Int) extends Data
+  final case class Dough(weight: Int) extends Data
   final case class RawCookies(count: Int) extends Data
   class LazyWorkerException extends Throwable
 }
 
 class Cook extends Actor with ActorLogging {
   override def receive: Receive = {
-    case Pastry(weight) =>
+    case Dough(weight) =>
       if (Random.nextInt(5) == 0) {
         log.info("Laziness attack")
         throw new LazyWorkerException
@@ -279,7 +279,7 @@ class Oven(size: Int) extends Actor {
   }
 }
 class GuardianSupervisorStrategyConfigurator
-    extends SupervisorStrategyConfigurator {
+  extends SupervisorStrategyConfigurator {
   override def create(): SupervisorStrategy = AllForOneStrategy() {
     case _: LazyWorkerException ⇒
       println("Lazy workers. Let's try again with another crew!")
