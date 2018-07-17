@@ -19,11 +19,8 @@ class BakerySpec extends WordSpec with ActorTestKit with BeforeAndAfterAll {
 
   override def afterAll: Unit = shutdownTestKit()
 
-  override def config: Config = ManualTime.config
-  val manualTime: ManualTime = ManualTime()
-
   "The boy should" should {
-    "forward given ShoppingList to the seller and stop" in {
+    "forward given ShoppingList to the seller" in {
       val testKit = BehaviorTestKit(Boy.goShopping)
       val seller = TestInbox[Shop.SellByList]()
       val manager = TestInbox[Manager.Command]()
@@ -31,10 +28,14 @@ class BakerySpec extends WordSpec with ActorTestKit with BeforeAndAfterAll {
       testKit.run(GoShopping(list, seller.ref, manager.ref))
       testKit.expectEffect(NoEffects)
       seller.expectMessage(SellByList(list, manager.ref))
+      assert(!testKit.isAlive)
     }
   }
   "The chef should" should {
     "create and destroy mixers as required" in {
+      // the mixerFactory is needed because behaviour equals method is not implemented correctly
+      // currently behaviours compared by reference
+      // therefore we need to have the same behaviour instance for the test to pass
       val mixerFactory = Mixer.mix(0 seconds)
       val chef = BehaviorTestKit(Chef.idle(mixerFactory))
       val manager = TestInbox[Manager.Command]()
@@ -48,10 +49,14 @@ class BakerySpec extends WordSpec with ActorTestKit with BeforeAndAfterAll {
       chef.childInbox("Mixer_1").expectMessage(expectedByMixer)
     }
   }
+
+  override def config: Config = ManualTime.config
+  val manualTime: ManualTime = ManualTime()
+
   "The baker should" should {
     "bake cookies in batches" in {
       val oven = TestProbe[Oven.Command]()
-      val manager = TestInbox[Manager.Command]()
+      val manager = TestProbe[Manager.Command]()
       val baker = spawn(Baker.idle(oven.ref))
       baker ! BakeCookies(RawCookies(1), manager.ref)
       oven.expectMessage(Oven.Put(1, baker))

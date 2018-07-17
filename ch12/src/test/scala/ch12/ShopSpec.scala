@@ -7,7 +7,7 @@ import akka.actor.typed.receptionist.Receptionist.Register
 import ch12.Bakery.Groceries
 import ch12.Manager.ReceiveGroceries
 import ch12.Shop.{SellByList, ShoppingList}
-import org.scalatest.{Matchers, WordSpec, WordSpecLike}
+import org.scalatest.WordSpec
 
 import scala.language.postfixOps
 
