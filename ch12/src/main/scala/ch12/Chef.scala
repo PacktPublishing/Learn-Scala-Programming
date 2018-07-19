@@ -33,22 +33,28 @@ object Chef {
   def mixing(mixers: Set[ActorRef[Mixer.Mix]],
              collected: Int,
              manager: ActorRef[Manager.Command],
-             mixerBuilder: Behavior[Mixer.Mix]): Behaviors.Receive[Command] =
+             mixerBuilder: Behavior[Mixer.Mix]): Behaviors.Receive[Command] = {
+
+    def designateBehavior(mixer: ActorRef[Mixer.Mix], doughBuf: Int) = {
+      val mixersToGo = mixers - mixer
+      if (mixersToGo.isEmpty) {
+        manager ! ReceiveDough(Dough(doughBuf))
+        idle(mixerBuilder)
+      } else {
+        mixing(mixersToGo, doughBuf, manager, mixerBuilder)
+      }
+    }
+
     Behaviors.receivePartial {
       case (context, Collect(dough, mixer)) =>
-        val mixersToGo = mixers - mixer
         val doughBuf = collected + dough.weight
         context.stop(mixer)
-        if (mixersToGo.isEmpty) {
-          manager ! ReceiveDough(Dough(doughBuf))
-          idle(mixerBuilder)
-        } else {
-          mixing(mixersToGo, doughBuf, manager, mixerBuilder)
-        }
+        designateBehavior(mixer, doughBuf)
       case (context, BrokenMixer(m)) =>
         context.log.warning("Broken mixer detected {}", m)
         context.self ! Collect(Dough(0), m)
-        Behaviors.same
+        designateBehavior(m, collected)
     }
+  }
 
 }
