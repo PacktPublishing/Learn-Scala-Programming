@@ -2,7 +2,7 @@ package ch13
 
 import akka.actor.{ActorRef, ActorSystem, Cancellable}
 import akka.stream._
-import akka.stream.scaladsl.{Flow, Sink, Source}
+import akka.stream.scaladsl.{BidiFlow, Flow, Sink, Source}
 import akka.util.Timeout
 import akka.{Done, NotUsed}
 import ch13.Bakery.{Dough, Groceries, RawCookies, ReadyCookies}
@@ -31,11 +31,12 @@ object Bakery extends App {
   implicit val materializer: Materializer = ActorMaterializer()
   implicit val ec: ExecutionContext = bakery.dispatcher
 
+  val bakerFlow = Baker.bakeFlow.join(Oven.bakeFlow)
+
   val flow = Boy.shopFlow
     .via(Chef.mixFlow)
     .via(Cook.formFlow)
-    .via(Baker.bakeFlow)
-    .via(Oven.bakeFlow)
+    .via(bakerFlow)
 
   import Manager._
 
@@ -133,12 +134,14 @@ object Cook {
 }
 
 object Baker {
-  def bakeFlow = {
-    Flow[RawCookies]
-      .flatMapConcat(extractFromBox)
-      .grouped(12)
-      .map(_.reduce(_ + _))
-  }
+  def bakeFlow = BidiFlow.fromFlows(inFlow, outFlow)
+
+  private val inFlow = Flow[RawCookies]
+    .flatMapConcat(extractFromBox)
+    .grouped(12)
+    .map(_.reduce(_ + _))
+
+  private def outFlow = Flow[ReadyCookies]
 
   private def extractFromBox(c: RawCookies) = {
     Source(List.fill(c.count)(RawCookies(1)))
