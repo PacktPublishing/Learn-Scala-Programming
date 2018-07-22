@@ -1,6 +1,7 @@
 package ch13
 
-import akka.actor.{ActorRef, ActorSystem, Cancellable}
+import akka.actor.{ActorRef, ActorSystem}
+import akka.event.Logging
 import akka.stream._
 import akka.stream.scaladsl.{BidiFlow, Flow, Sink, Source}
 import akka.util.Timeout
@@ -31,14 +32,15 @@ object Bakery extends App {
   implicit val materializer: Materializer = ActorMaterializer()
   implicit val ec: ExecutionContext = bakery.dispatcher
 
-  val bakerFlow = Baker.bakeFlow.join(Oven.bakeFlow)
+  import Manager._
+
+  val bakerFlow: Flow[RawCookies, ReadyCookies, NotUsed] =
+    Baker.bakeFlow.join(Oven.bakeFlow)
 
   val flow = Boy.shopFlow
     .via(Chef.mixFlow)
     .via(Cook.formFlow)
     .via(bakerFlow)
-
-  import Manager._
 
   val matValue = manager.via(flow).runWith(consumer)
 
@@ -50,18 +52,16 @@ object Bakery extends App {
 object Manager {
   private def shoppingList: ShoppingList = {
     val eggs = Random.nextInt(10) + 5
-    ShoppingList(eggs, eggs * 50, eggs * 10, eggs * 5)
+    val result = ShoppingList(eggs, eggs * 50, eggs * 10, eggs * 5)
+    println(s"Shopping list $result")
+    result
   }
 
   private val delay = 1 second
   private val interval = 1 second
 
-  val manager: Source[ShoppingList, Cancellable] =
-    Source.tick(delay, interval, NotUsed).map { _ =>
-      val sl = shoppingList
-      println(s"New request $sl")
-      sl
-    }
+  val manager: Source[ShoppingList, NotUsed] =
+    Source.repeat(NotUsed).map(_ => shoppingList)
 
   val consumer: Sink[ReadyCookies, Future[Done]] =
     Sink.foreach(c => println(s"$c, yummi..."))
@@ -76,16 +76,12 @@ object Boy {
     seller.resolveOne()
   }
 
-  def goShopping(
-      implicit as: ActorSystem,
-      ec: ExecutionContext): Future[Flow[ShoppingList, Groceries, NotUsed]] =
-    lookupSeller.map { ref =>
-      println(s"Going shopping to ${ref.path}")
-      Flow[ShoppingList].ask[Groceries](ref)
-    }
+  def goShopping(implicit as: ActorSystem, ec: ExecutionContext):
+    Future[Flow[ShoppingList, Groceries, NotUsed]] =
+    lookupSeller.map { ref => Flow[ShoppingList].ask[Groceries](ref) }
 
-  def shopFlow(implicit as: ActorSystem, ec: ExecutionContext) =
-    Flow.lazyInitAsync(() => goShopping)
+  def shopFlow(implicit as: ActorSystem, ec: ExecutionContext): Flow[ShoppingList, Groceries, Future[Option[NotUsed]]] =
+    Flow.lazyInitAsync { () => goShopping }
 }
 
 object Chef {
@@ -121,16 +117,22 @@ object Chef {
 
 object Cook {
   def formFlow: Flow[Dough, RawCookies, NotUsed] =
-    Flow[Dough].map { dough =>
-      print(s"Forming $dough - ")
-      val result = RawCookies(makeCookies(dough.weight))
-      println(result)
-      result
-    }
+    Flow[Dough]
+      .log("Cook[Before Map]")
+      .map { dough =>
+        RawCookies(makeCookies(dough.weight))
+      }
+      .log("Cook[After Map]")
+      .withAttributes(
+        Attributes.logLevels(
+          onElement = Logging.InfoLevel,
+          onFinish = Logging.DebugLevel,
+          onFailure = Logging.WarningLevel
+        )
+      )
 
   private val cookieWeight = 50
   private def makeCookies(weight: Int): Int = weight / cookieWeight
-
 }
 
 object Baker {
@@ -138,18 +140,16 @@ object Baker {
 
   private val inFlow = Flow[RawCookies]
     .flatMapConcat(extractFromBox)
-    .grouped(12)
+    .grouped(Oven.ovenSize)
     .map(_.reduce(_ + _))
 
   private def outFlow = Flow[ReadyCookies]
 
-  private def extractFromBox(c: RawCookies) = {
-    Source(List.fill(c.count)(RawCookies(1)))
-  }
+  private def extractFromBox(c: RawCookies) = Source(List.fill(c.count)(RawCookies(1)))
 }
 
 object Oven {
-  private val ovenSize = 12
+  val ovenSize = 12
   private val bakingTime = 2 seconds
 
   def bakeFlow: Flow[RawCookies, ReadyCookies, NotUsed] =
@@ -159,10 +159,7 @@ object Oven {
       .map(bake)
 
   private def bake(c: RawCookies): ReadyCookies = {
-    print(s"Baking $c ... ")
     assert(c.count == ovenSize)
-    Thread.sleep(bakingTime.toMillis)
-    println(s"done!")
     ReadyCookies(c.count)
   }
 }
