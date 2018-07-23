@@ -14,7 +14,22 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 import scala.util.Random
 
-object Bakery extends App {
+object BakeryApp extends App {
+  import Bakery._
+  import Manager._
+
+  implicit val bakery: ActorSystem = ActorSystem("Bakery")
+  implicit val materializer: Materializer = ActorMaterializer()
+  implicit val ec: ExecutionContext = bakery.dispatcher
+
+  val matValue = manager.via(flow).runWith(consumer)
+
+  matValue.onComplete(_ => afterAll)
+
+  private def afterAll = bakery.terminate()
+}
+
+object Bakery {
 
   final case class Groceries(eggs: Int, flour: Int, sugar: Int, chocolate: Int)
 
@@ -28,25 +43,15 @@ object Bakery extends App {
 
   final case class ReadyCookies(count: Int)
 
-  implicit val bakery: ActorSystem = ActorSystem("Bakery")
-  implicit val materializer: Materializer = ActorMaterializer()
-  implicit val ec: ExecutionContext = bakery.dispatcher
-
-  import Manager._
-
-  val bakerFlow: Flow[RawCookies, ReadyCookies, NotUsed] =
+  private val bakerFlow: Flow[RawCookies, ReadyCookies, NotUsed] =
     Baker.bakeFlow.join(Oven.bakeFlow)
 
-  val flow = Boy.shopFlow
-    .via(Chef.mixFlow)
-    .via(Cook.formFlow)
-    .via(bakerFlow)
-
-  val matValue = manager.via(flow).runWith(consumer)
-
-  matValue.onComplete(_ => afterAll)
-
-  private def afterAll = bakery.terminate()
+  def flow(implicit as: ActorSystem, ec: ExecutionContext)
+    : Flow[ShoppingList, ReadyCookies, Future[Option[NotUsed]]] =
+    Boy.shopFlow
+      .via(Chef.mixFlow)
+      .via(Cook.formFlow)
+      .via(bakerFlow)
 }
 
 object Manager {
@@ -76,16 +81,31 @@ object Boy {
     seller.resolveOne()
   }
 
-  def goShopping(implicit as: ActorSystem, ec: ExecutionContext):
-    Future[Flow[ShoppingList, Groceries, NotUsed]] =
-    lookupSeller.map { ref => Flow[ShoppingList].ask[Groceries](ref) }
+  def goShopping(
+      implicit as: ActorSystem,
+      ec: ExecutionContext): Future[Flow[ShoppingList, Groceries, NotUsed]] =
+    lookupSeller.map { ref =>
+      Flow[ShoppingList].ask[Groceries](ref)
+    }
 
-  def shopFlow(implicit as: ActorSystem, ec: ExecutionContext): Flow[ShoppingList, Groceries, Future[Option[NotUsed]]] =
-    Flow.lazyInitAsync { () => goShopping }
+  def shopFlow(implicit as: ActorSystem, ec: ExecutionContext)
+    : Flow[ShoppingList, Groceries, Future[Option[NotUsed]]] =
+    Flow.lazyInitAsync { () =>
+      goShopping
+    }
 }
 
 object Chef {
-  private val mixTime = 5 seconds
+
+  object MotorOverheatException extends Exception
+  object SlowRotationSpeedException extends Exception
+  object StrongVibrationException extends Exception
+
+  val exceptions = Seq(MotorOverheatException,
+                       SlowRotationSpeedException,
+                       StrongVibrationException)
+
+  private val mixTime = 1 seconds
   def mixFlow: Flow[Groceries, Dough, NotUsed] = {
     Flow[Groceries]
       .map(splitByMixer)
@@ -106,13 +126,32 @@ object Chef {
   }
 
   private def subMixFlow: Flow[Groceries, Dough, NotUsed] =
-    Flow[Groceries].async("mixers-dispatcher", 1).map(mix)
+    Flow[Groceries]
+      .async("mixers-dispatcher", 1)
+      .map(mix)
+      .recover {
+        case MotorOverheatException => Dough(0)
+      }
+      .withAttributes(ActorAttributes.supervisionStrategy(strategy))
 
-  private def mix(g: Groceries) = {
-    Thread.sleep(mixTime.toMillis)
-    import g._
-    Dough(eggs * 50 + flour + sugar + chocolate)
+  val strategy: Supervision.Decider = {
+    case StrongVibrationException ⇒ println("resuming"); Supervision.resume
+    case _ => Supervision.Stop
   }
+
+  private def mix(g: Groceries) =
+    try {
+      if (Random.nextBoolean())
+        throw exceptions(Random.nextInt(exceptions.size))
+      Thread.sleep(mixTime.toMillis)
+      import g._
+      Dough(eggs * 50 + flour + sugar + chocolate)
+    } catch {
+      case SlowRotationSpeedException =>
+        Thread.sleep(mixTime.toMillis * 2)
+        import g._
+        Dough(eggs * 50 + flour + sugar + chocolate)
+    }
 }
 
 object Cook {
@@ -145,7 +184,8 @@ object Baker {
 
   private def outFlow = Flow[ReadyCookies]
 
-  private def extractFromBox(c: RawCookies) = Source(List.fill(c.count)(RawCookies(1)))
+  private def extractFromBox(c: RawCookies) =
+    Source(List.fill(c.count)(RawCookies(1)))
 }
 
 object Oven {
@@ -155,7 +195,7 @@ object Oven {
   def bakeFlow: Flow[RawCookies, ReadyCookies, NotUsed] =
     Flow[RawCookies]
       .delay(bakingTime, DelayOverflowStrategy.backpressure)
-      .addAttributes(Attributes.inputBuffer(0, 1))
+      .addAttributes(Attributes.inputBuffer(1, 1))
       .map(bake)
 
   private def bake(c: RawCookies): ReadyCookies = {
