@@ -1,2 +1,1 @@
-# Learn-Scala---Fundamentals-of-Scala-2.12
-Learn Scala - Fundamentals of Scala 2.12, published by Packt
+# The code for this repository is under development :construction_worker:
