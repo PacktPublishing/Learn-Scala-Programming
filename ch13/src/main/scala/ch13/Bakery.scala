@@ -3,7 +3,7 @@ package ch13
 import akka.actor.{ActorRef, ActorSystem}
 import akka.event.Logging
 import akka.stream._
-import akka.stream.scaladsl.{BidiFlow, Flow, Sink, Source}
+import akka.stream.scaladsl.{BidiFlow, Flow, Keep, RunnableGraph, Sink, Source}
 import akka.util.Timeout
 import akka.{Done, NotUsed}
 import ch13.Bakery.{Dough, Groceries, RawCookies, ReadyCookies}
@@ -22,9 +22,9 @@ object BakeryApp extends App {
   implicit val materializer: Materializer = ActorMaterializer()
   implicit val ec: ExecutionContext = bakery.dispatcher
 
-  val matValue = manager.via(flow).runWith(consumer)
+  val matValue: RunnableGraph[Future[Done]] = manager.via(flow).toMat(consumer)(Keep.right)
 
-  matValue.onComplete(_ => afterAll)
+  matValue.run().onComplete(_ => afterAll)
 
   private def afterAll = bakery.terminate()
 }
