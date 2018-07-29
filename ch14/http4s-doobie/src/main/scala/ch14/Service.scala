@@ -44,7 +44,6 @@ class Service(repo: Repository) extends Http4sDsl[IO] {
                            before: Map[A, Int],
                            after: Map[A, Int]): Map[A, Int] =
     keys.filter(before.contains).map { key =>
-      println(s"$key - ${before(key)} - ${after(key)}")
       key -> (before(key) - after(key))
     }.toMap
 

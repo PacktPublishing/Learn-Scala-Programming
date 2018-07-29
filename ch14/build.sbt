@@ -12,6 +12,8 @@ lazy val scalaTestVersion = "3.0.5"
 lazy val scalaMockVersion = "4.1.0"
 lazy val akkaHttpVersion = "10.1.3"
 lazy val akkaVersion    = "2.5.14"
+lazy val akkaPersistenceVersion = "3.4.0"
+lazy val staminaVersion = "0.1.4"
 
 
 lazy val akkaHttp = (project in file("akka-http")).
@@ -23,15 +25,21 @@ lazy val akkaHttp = (project in file("akka-http")).
     )),
     name := "akka-http",
     libraryDependencies ++= Seq(
-      "com.typesafe.akka" %% "akka-http"            % akkaHttpVersion,
-      "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion,
-      "com.typesafe.akka" %% "akka-http-xml"        % akkaHttpVersion,
-      "com.typesafe.akka" %% "akka-stream"          % akkaVersion,
+      "com.typesafe.akka"   %% "akka-http"              % akkaHttpVersion,
+      "com.typesafe.akka"   %% "akka-http-spray-json"   % akkaHttpVersion,
+      "com.typesafe.akka"   %% "akka-stream"            % akkaVersion,
+      "com.typesafe.akka"   %% "akka-persistence"       % akkaVersion,
+      "com.typesafe.akka"   %% "akka-persistence-query" % akkaVersion,
 
-      "com.typesafe.akka" %% "akka-http-testkit"    % akkaHttpVersion   % Test,
-      "com.typesafe.akka" %% "akka-testkit"         % akkaVersion       % Test,
-      "com.typesafe.akka" %% "akka-stream-testkit"  % akkaVersion       % Test,
-      "org.scalatest"     %% "scalatest"            % scalaTestVersion  % Test
+      "com.github.dnvriend" %% "akka-persistence-jdbc"  % akkaPersistenceVersion,
+      "com.scalapenos"      %% "stamina-json"           % staminaVersion,
+      "com.h2database"      %  "h2"                     % h2Version,
+      "org.flywaydb"        %  "flyway-core"            % flywayVersion,
+
+      "com.typesafe.akka"   %% "akka-http-testkit"      % akkaHttpVersion   % Test,
+      "com.typesafe.akka"   %% "akka-testkit"           % akkaVersion       % Test,
+      "com.typesafe.akka"   %% "akka-stream-testkit"    % akkaVersion       % Test,
+      "org.scalatest"       %% "scalatest"              % scalaTestVersion  % Test
     )
   )
 
