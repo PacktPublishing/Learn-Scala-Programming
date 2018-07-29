@@ -10,7 +10,12 @@ import akka.http.scaladsl.server.directives.RouteDirectives.complete
 import akka.pattern.ask
 import akka.util.Timeout
 import ch14.Commands._
-import ch14.Events.{ArticleCreated, ArticleDeleted, ArticlesPurchased, ArticlesRestocked}
+import ch14.Events.{
+  ArticleCreated,
+  ArticleDeleted,
+  ArticlesPurchased,
+  ArticlesRestocked
+}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -32,8 +37,8 @@ trait Routes extends JsonSupport {
                 (inventory ? CreateArticle(name, 0))
                   .mapTo[Option[ArticleCreated]]
               onSuccess(changedInventory) {
-                case None => complete(StatusCodes.Conflict)
-                case Some(event) => complete(event)
+                case None        => complete(StatusCodes.Conflict)
+                case Some(event) => complete(StatusCodes.Created, event)
               }
             },
             delete {
@@ -60,7 +65,7 @@ trait Routes extends JsonSupport {
             val response: Future[Option[ArticlesPurchased]] =
               (inventory ? order).mapTo[Option[ArticlesPurchased]]
             onSuccess(response) {
-              case None => complete(StatusCodes.Conflict)
+              case None        => complete(StatusCodes.Conflict)
               case Some(event) => complete(event)
             }
           }

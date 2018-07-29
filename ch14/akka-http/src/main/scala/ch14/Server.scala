@@ -8,7 +8,7 @@ import akka.stream.ActorMaterializer
 
 object Server extends App with Routes with JsonSupport {
 
-  val config = Config.load("application.conf")
+  val config = Config.load()
 
   implicit val system: ActorSystem = ActorSystem("ch14")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
