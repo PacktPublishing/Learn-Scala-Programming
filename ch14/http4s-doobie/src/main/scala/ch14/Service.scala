@@ -19,6 +19,8 @@ class Service(repo: Repository) extends Http4sDsl[IO] {
     case POST -> Root / "articles" / name =>
       repo.createArticle(name).flatMap { if (_) NoContent() else Conflict() }
 
+    case GET -> Root / "articles" / name => renderInventory(repo.getArticle(name))
+
     case req @ POST -> Root / "purchase" =>
       val changes: Stream[IO, Inventory] = for {
         purchase <- Stream.eval(req.decodeJson[Purchase])

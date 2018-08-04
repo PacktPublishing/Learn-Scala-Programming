@@ -24,13 +24,16 @@ object Events {
 }
 
 sealed trait Command
+sealed trait Query
 
 object Commands {
   final case class CreateArticle(name: String, count: Int) extends Command
   final case class DeleteArticle(name: String) extends Command
   final case class PurchaseArticles(order: Map[String, Int]) extends Command
   final case class RestockArticles(stock: Map[String, Int]) extends Command
-  final case object GetInventory
+  final case object GetInventory extends Query
+  final case class GetArticle(name: String) extends Query
+
 }
 
 final case class Inventory(state: Map[String, Int]) extends Persistable {
