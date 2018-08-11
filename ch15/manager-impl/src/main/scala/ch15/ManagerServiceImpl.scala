@@ -1,31 +1,36 @@
 package ch15
 
+import java.util.concurrent.atomic.AtomicInteger
+
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.{Done, NotUsed}
-import ch15.model._
+import ch15.model.{dough, _}
 import com.lightbend.lagom.scaladsl.api._
+import com.lightbend.lagom.scaladsl.api.broker.Subscriber
 import play.api.Logger
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ManagerServiceImpl(
-    boyService: BoyService,
-    chefService: ChefService,
-    cookService: CookService,
-    bakerService: BakerService,
-    as: ActorSystem)
+class ManagerServiceImpl(boyService: BoyService,
+                         chefService: ChefService,
+                         cookService: CookService,
+                         bakerService: BakerService,
+                         as: ActorSystem)
     extends ManagerService {
 
-  private var count: Int = 0
+  private val count: AtomicInteger = new AtomicInteger(0)
 
   private val logger = Logger("Manager")
 
   private implicit lazy val ec: ExecutionContext = as.dispatcher
   private implicit lazy val am: ActorMaterializer = ActorMaterializer()(as)
 
-  chefService.resultsTopic.subscribe.atLeastOnce(chefFlow)
+  val sub: Future[Done] =
+    chefService.resultsTopic.subscribe.atLeastOnce(chefFlow)
+
+  sub.onComplete(c => logger.info(s"WTF $c"))
 
   override def bake(count: Int): ServiceCall[NotUsed, Done] = ServiceCall { _ =>
     val sl = shoppingList(count)
@@ -40,39 +45,45 @@ class ManagerServiceImpl(
   }
 
   override def sell(cnt: Int): ServiceCall[NotUsed, Int] = ServiceCall { _ =>
-    if (cnt > count) {
+    if (cnt > count.get()) {
       Future.failed(
         new IllegalStateException(s"Only $count cookies are available"))
     } else {
-      count = count - cnt
+      count.addAndGet(-1 * cnt)
       Future.successful(cnt)
     }
   }
 
   override def report: ServiceCall[NotUsed, Int] = ServiceCall { _ =>
-    Future.successful(count)
+    Future.successful(count.get())
   }
 
   private def shoppingList(count: Int): ShoppingList =
     ShoppingList(count, count * 30, count * 10, count * 5)
 
-  private def chefFlow = {
-    val flow: Flow[Dough, Source[ReadyCookies, NotUsed], NotUsed] = Flow[Dough]
-      .map { dough =>
-        logger.info(s"Dough: $dough")
-        cookService.cook.invoke(dough)
-      }
-      .map(Source.fromFuture)
-      .mapAsync(1)(bakerService.bake.invoke)
-
-    flow.flatMapConcat { cookiesSource =>
-      logger.info(s"cookiesSource $cookiesSource")
-      cookiesSource.map { cookies =>
-        logger.info(s"Got baked cookies, now there are $cookies available")
-        count = count + cookies.count
-        Done
-      }.filter(_ => false).concat(Source.single(Done))
-    }
+  private def update(cookies: ReadyCookies) = {
+    logger.info(s"Got baked cookies, now there are $cookies available")
+    count.addAndGet(cookies.count)
   }
+  private lazy val chefFlow: Flow[Dough, Done, NotUsed] = Flow[Dough]
+    .map { dough: Dough =>
+      val fut = cookService.cook.invoke(dough)
+      val src = Source.fromFuture(fut)
+      val ready: Future[Source[ReadyCookies, NotUsed]] = bakerService.bake.invoke(src)
+      //val ready: Future[Source[ReadyCookies, NotUsed]] = Future.successful(src.map(r => ReadyCookies(12)).take(2))
+      Source.fromFutureSource(ready)
+    }
+    .flatMapConcat(identity)
+    .map(update)
+    .map(_ => Done)
+
+  lazy val dummyflow: Flow[Dough, Done, NotUsed] = Flow[Dough]
+    .map { dough =>
+      logger.info(s"Dough: $dough")
+      Source.fromFuture(cookService.cook.invoke(dough)).map { r =>
+        logger.info(s"Done $r"); Done
+      }
+    }
+    .flatMapConcat(identity)
 
 }

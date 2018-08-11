@@ -3,8 +3,10 @@ version in ThisBuild := "1.0-SNAPSHOT"
 
 scalaVersion in ThisBuild := "2.12.6"
 
-val macwire = "com.softwaremill.macwire" %% "macros" % "2.3.0" % "provided"
-val defaultDependencies = Seq(lagomScaladslTestKit, macwire)
+val macwire = "com.softwaremill.macwire" %% "macros" % "2.3.1" % Provided
+val scalaTest = "org.scalatest" %% "scalatest" % "3.0.5" % Test
+
+val defaultDependencies = Seq(lagomScaladslTestKit, macwire, scalaTest)
 
 lazy val bakery = (project in file("."))
   .aggregate(

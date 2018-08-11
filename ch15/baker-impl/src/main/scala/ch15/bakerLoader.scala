@@ -9,18 +9,18 @@ import play.api.libs.ws.ahc.AhcWSComponents
 
 
 abstract class BakerApplication(context: LagomApplicationContext)
-  extends LagomApplication(context) {
+  extends LagomApplication(context) with AhcWSComponents {
   override lazy val lagomServer: LagomServer = serverFor[BakerService](wire[BakerServiceImpl])
 }
 
 class BakerLoader extends LagomApplicationLoader {
 
   override def load(context: LagomApplicationContext): LagomApplication =
-    new BakerApplication(context) with AhcWSComponents {
+    new BakerApplication(context) {
       override def serviceLocator: ServiceLocator = NoServiceLocator
     }
 
   override def loadDevMode(context: LagomApplicationContext): LagomApplication =
-    new BakerApplication(context) with AhcWSComponents with LagomDevModeComponents
+    new BakerApplication(context) with LagomDevModeComponents
 
 }

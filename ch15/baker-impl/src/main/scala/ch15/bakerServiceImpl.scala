@@ -33,7 +33,10 @@ object Baker {
     .grouped(Oven.ovenSize)
     .map(_.reduce(_ + _))
 
-  private def outFlow = Flow[ReadyCookies]
+  private def outFlow = Flow[ReadyCookies].map { c =>
+    logger.info(s"Sending to manager: $c")
+    c
+  }
 
   private def extractFromBox(c: RawCookies) = {
     logger.info(s"Extracting: $c")
@@ -50,8 +53,8 @@ object Oven {
   def bakeFlow: Flow[RawCookies, ReadyCookies, NotUsed] =
     Flow[RawCookies]
       .map(bake)
-      .delay(bakingTime, DelayOverflowStrategy.backpressure)
-      .addAttributes(Attributes.inputBuffer(1, 1))
+/*      .delay(bakingTime, DelayOverflowStrategy.backpressure)
+      .addAttributes(Attributes.inputBuffer(1, 1))*/
 
   private def bake(c: RawCookies): ReadyCookies = {
     logger.info(s"Baked: $c")
