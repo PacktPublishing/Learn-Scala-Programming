@@ -8,7 +8,6 @@ import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.{Done, NotUsed}
 import ch15.model.{dough, _}
 import com.lightbend.lagom.scaladsl.api._
-import com.lightbend.lagom.scaladsl.api.broker.Subscriber
 import play.api.Logger
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -23,14 +22,6 @@ class ManagerServiceImpl(boyService: BoyService,
   private val count: AtomicInteger = new AtomicInteger(0)
 
   private val logger = Logger("Manager")
-
-  private implicit lazy val ec: ExecutionContext = as.dispatcher
-  private implicit lazy val am: ActorMaterializer = ActorMaterializer()(as)
-
-  val sub: Future[Done] =
-    chefService.resultsTopic.subscribe.atLeastOnce(chefFlow)
-
-  sub.onComplete(c => logger.info(s"WTF $c"))
 
   override def bake(count: Int): ServiceCall[NotUsed, Done] = ServiceCall { _ =>
     val sl = shoppingList(count)
@@ -60,6 +51,14 @@ class ManagerServiceImpl(boyService: BoyService,
 
   private def shoppingList(count: Int): ShoppingList =
     ShoppingList(count, count * 30, count * 10, count * 5)
+
+  private implicit lazy val ec: ExecutionContext = as.dispatcher
+  private implicit lazy val am: ActorMaterializer = ActorMaterializer()(as)
+
+  val sub: Future[Done] =
+    chefService.resultsTopic.subscribe.atLeastOnce(chefFlow)
+
+
 
   private def update(cookies: ReadyCookies) = {
     logger.info(s"Got baked cookies, now there are $cookies available")

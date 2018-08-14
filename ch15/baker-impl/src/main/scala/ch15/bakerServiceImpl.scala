@@ -5,10 +5,11 @@ import akka.stream.{Attributes, DelayOverflowStrategy}
 import akka.stream.scaladsl.{BidiFlow, Flow, Source}
 import ch15.model._
 import com.lightbend.lagom.scaladsl.api._
-import play.api.Logger
 
 import scala.concurrent.duration._
 import scala.concurrent.Future
+
+import play.api.Logger
 
 class BakerServiceImpl extends BakerService {
 
@@ -53,8 +54,8 @@ object Oven {
   def bakeFlow: Flow[RawCookies, ReadyCookies, NotUsed] =
     Flow[RawCookies]
       .map(bake)
-/*      .delay(bakingTime, DelayOverflowStrategy.backpressure)
-      .addAttributes(Attributes.inputBuffer(1, 1))*/
+      .delay(bakingTime, DelayOverflowStrategy.backpressure)
+      .addAttributes(Attributes.inputBuffer(1, 1))
 
   private def bake(c: RawCookies): ReadyCookies = {
     logger.info(s"Baked: $c")

@@ -11,10 +11,11 @@ import play.api.libs.ws.ahc.AhcWSComponents
 
 abstract class ManagerApplication(context: LagomApplicationContext)
     extends LagomApplication(context) with LagomKafkaClientComponents {
-  lazy val boyService: BoyService = serviceClient.implement[BoyService]
-  lazy val chefService: ChefService = serviceClient.implement[ChefService]
-  lazy val cookService: CookService = serviceClient.implement[CookService]
-  lazy val bakerService: BakerService = serviceClient.implement[BakerService]
+  lazy val implement = serviceClient.implement
+  lazy val boyService: BoyService = implement[BoyService]
+  lazy val chefService: ChefService = implement[ChefService]
+  lazy val cookService: CookService = implement[CookService]
+  lazy val bakerService: BakerService = implement[BakerService]
   override lazy val lagomServer: LagomServer =
     serverFor[ManagerService](wire[ManagerServiceImpl])
 }

@@ -27,7 +27,7 @@ class BakerServiceSpec extends AsyncWordSpec with Matchers {
         probe.request(10)
         probe.expectNext(ReadyCookies(12))
         probe.expectNext(ReadyCookies(12))
-        // because the oven is not full for the 6 which are left
+        // because the oven is not full for the 6 other
         probe.cancel
         succeed
       }
