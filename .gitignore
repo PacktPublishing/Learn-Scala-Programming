@@ -5,3 +5,16 @@ target/
 .git/
 **/target
 **/.idea
+**/target
+**/ideatarget
+**/.target
+**/bin
+**/.cache
+**/.cache-main
+**/.cache-tests
+**/.classpath
+**/.project
+**/.tmpBin
+**/.factorypath
+**/.settings
+**/logs
