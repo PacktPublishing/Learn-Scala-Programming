@@ -1,31 +1,32 @@
 package ch04
 
-trait ParentA {
+import scala.language.implicitConversions
+
+trait ParentA { def name: String }
+trait ParentB
+class ChildA(val name: String) extends ParentA with ParentB
+
+object ParentB {
+  implicit def a2Char(a: ParentA): Char = a.name.head
 
 }
-
-object ChildA extends ParentA {
-
+object ParentA {
+  implicit def a2Int(a: ParentA): Int = a.hashCode()
+  implicit val ordering = new Ordering[ChildA] {
+    override def compare(a: ChildA, b: ChildA): Int =
+      implicitly[Ordering[String]].compare(a.name, b.name)
+  }
+}
+object ChildA {
+  implicit def a2String(a: ParentA): String = a.name
 }
 
-trait ParentB {
-
-}
-class ChildB extends ParentB {
-
-}
-object ChildB extends ParentB {
-
-}
-
-trait ParentF[T] {
-  def fuse(a: T, b: T): T
-}
-
-class StringF extends ParentF[String] {
-  override def fuse(a: String, b: String): String = a + b
-}
-
-class IntF extends ParentF[Int] {
-  override def fuse(a: Int, b: Int): Int = a + b
+trait Test {
+  def test(a: ChildA) = {
+    val _: Int = a // companion object of ParentA
+    val _: String = a // companion object of ChildA
+    val _: Char = a // companion object of ParentB
+  }
+  def constructor[T: Ordering](in: T*): List[T] = in.toList.sorted // companion object of type constructor
+  constructor(new ChildA("A"), new ChildA("B")).sorted // companion object of type parameters
 }
