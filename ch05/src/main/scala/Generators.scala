@@ -1,5 +1,5 @@
 import org.scalacheck.Prop._
-import org.scalacheck.{Gen, Prop}
+import org.scalacheck.{Arbitrary, Gen, Prop}
 
 object Generators {
 
@@ -8,16 +8,14 @@ object Generators {
   }
   morgans.check
 
-/*
-
-  TODO uncomment with scala 2.13
 
   def literalGen[T <: Singleton](t: T): Gen[T] = Gen.const(t)
 
   implicit val myGen: Arbitrary[42] = Arbitrary(literalGen(42))
 
-  val literalProp = forAll((_: 42) == 42).check
-*/
+  val literalProp: Prop = forAll((_: 42) == 42)
+
+  literalProp.check
 
   sealed trait Rank
   case class SymRank(s: Char) extends Rank {
