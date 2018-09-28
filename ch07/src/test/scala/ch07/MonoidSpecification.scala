@@ -14,7 +14,7 @@ object MonoidSpecification extends Properties("Monoid") {
     })
 
 
-  def monoidProps[S : Monoid : Arbitrary]: Prop = associativity[S] && identity[S]
+  def monoidProp[S : Monoid : Arbitrary]: Prop = associativity[S] && identity[S]
 
   val bucketOfFishGen: Gen[List[Fish]] = Gen.listOf(fishGen)
   implicit val arbBucketOfFish: Arbitrary[Bucket[Fish]] = Arbitrary(bucketOfFishGen)
@@ -23,57 +23,53 @@ object MonoidSpecification extends Properties("Monoid") {
 
   property("bucket of fish monoid") = {
     import Monoid.mergeBuckets
-    monoidProps[Bucket[Fish]]
+    monoidProp[Bucket[Fish]]
   }
 
   property("ints under addition") = {
     import Monoid.intAddition
-    monoidProps[Int]
+    monoidProp[Int]
   }
 
   property("ints under multiplication") = {
     import Monoid.intMultiplication
-    monoidProps[Int]
+    monoidProp[Int]
   }
 
   property("strings under concatenation") = {
     import Monoid.stringConcatenation
-    monoidProps[String]
+    monoidProp[String]
   }
 
   property("props for fish monoid under 'big eats little'") = {
     import Monoid.volumeMonoid
-    monoidProps[Fish]
+    monoidProp[Fish]
   }
 
   property("props for fish monoid under 'heavy eats light'") = {
     import Monoid.weightMonoid
-    monoidProps[Fish]
+    monoidProp[Fish]
   }
 
   property("props for fish monoid under 'poisonous drives away others'") = {
     import Monoid.poisonMonoid
-    monoidProps[Fish]
+    monoidProp[Fish]
   }
   property("props for fish monoid under 'teeth FTW'") = {
     import Monoid.teethMonoid
-    monoidProps[Fish]
+    monoidProp[Fish]
   }
 
   property("props for survival in the bucket for most poisonousness") = {
     import Monoid.poisonMonoid
     import Monoid.surviveInTheBucket
-    monoidProps[Bucket[Fish]]
+    monoidProp[Bucket[Fish]]
   }
 
   property("props for survival in the bucket for heaviest") = {
     import Monoid.weightMonoid
     import Monoid.surviveInTheBucket
-    monoidProps[Bucket[Fish]]
+    monoidProp[Bucket[Fish]]
   }
 
-  val bucket = bucketOfFishGen.sample.get
-  bucket.reduce(Semigroup.poisonSemigroup.op)
-
-  List.empty[Fish].reduce(Semigroup.poisonSemigroup.op)
 }

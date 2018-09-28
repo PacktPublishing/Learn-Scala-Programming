@@ -62,4 +62,12 @@ object Monoid {
       l zip r map operation
     }
   }
+
+  implicit val slowPoisonMonoid: Monoid[Fish] = new Monoid[Fish] {
+    override def identity: Fish = ZeroFish
+    override def op(l: Fish, r: Fish): Fish = {
+      Thread.sleep(1)
+      if (l.poisonousness > r.poisonousness) l else r
+    }
+  }
 }
