@@ -11,7 +11,7 @@ trait Functor[F[_]] {
 
 
 object Functor {
-  implicit val listFunctor: Functor[List] = new Functor[List] {
+  implicit val bucketFunctor: Functor[List] = new Functor[List] {
     override def map[A, B](in: List[A])(f: A => B): List[B] = in.map(f)
 
     override def mapC[A, B](f: A => B): List[A] => List[B] = (_: List[A]).map(f)
