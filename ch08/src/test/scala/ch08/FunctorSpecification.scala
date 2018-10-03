@@ -4,6 +4,7 @@ import org.scalacheck._
 import org.scalacheck.Prop._
 
 import scala.language.higherKinds
+import scala.util.Try
 
 object FunctorSpecification extends Properties("Functor") {
 
@@ -30,34 +31,32 @@ object FunctorSpecification extends Properties("Functor") {
                              cogenB: Cogen[B]): Prop =
     id[A, F] && associativity[A, B, C, F]
 
+  import Functor._
+
   property("Functor[Option] and Int => String, String => Long") = {
-    import Functor.optionFunctor
     functor[Int, String, Long, Option]
   }
 
   property("Functor[Option] and String => Int, Int => Boolean") = {
-    import Functor.optionFunctor
     functor[String, Int, Boolean, Option]
   }
 
+  type UnitEither[R] = Either[Unit, R]
+
   property("Functor[Either] and Int => String, String => Long") = {
-    import Functor.eitherFunctor
-    functor[Int, String, Long, Option]
+    functor[Int, String, Long, UnitEither]
   }
 
   property("Functor[Either] and String => Int, Int => Boolean") = {
-    import Functor.eitherFunctor
-    functor[String, Int, Boolean, Option]
+    functor[String, Int, Boolean, UnitEither]
   }
 
   property("Functor[Try] and Int => String, String => Long") = {
-    import Functor.tryFunctor
-    functor[Int, String, Long, Option]
+    functor[Int, String, Long, Try]
   }
 
   property("Functor[Try] and String => Int, Int => Boolean") = {
-    import Functor.tryFunctor
-    functor[String, Int, Boolean, Option]
+    functor[String, Int, Boolean, Try]
   }
 
 
