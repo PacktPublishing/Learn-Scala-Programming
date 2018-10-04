@@ -9,7 +9,7 @@ import ch12.Manager.ReceiveGroceries
 import ch12.Shop.seller
 import com.typesafe.config.ConfigFactory
 
-object ShopApp extends App {
+object Store extends App {
   val config = ConfigFactory.load("grocery.conf")
   val system = ActorSystem(seller(Shop.systemReceptionist), "Typed-Bakery", config)
 }
