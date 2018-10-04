@@ -46,7 +46,7 @@ trait EitherEffect {
   def either(i: Int): Boolean = Either.cond(i > 10, i * 10, new IllegalArgumentException("Give me more")).forall(_ < 100)
 }
 
-trait UserEitherExample {
+trait FishingEitherExample {
   import Effects._
 
   trait plain {

@@ -46,7 +46,7 @@ trait FutureEffect {
 
 }
 
-trait UserFutureExample {
+trait FishingFutureExample {
   import Effects._
 
   trait plain {

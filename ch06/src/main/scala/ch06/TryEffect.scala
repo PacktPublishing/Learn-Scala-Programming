@@ -44,7 +44,7 @@ trait TryEffect {
 
 }
 
-trait UserTryExample {
+trait FishingTryExample {
   import Effects._
 
   trait plain {
