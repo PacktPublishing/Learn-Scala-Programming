@@ -2,7 +2,7 @@ package ch06
 
 import scala.concurrent.{ExecutionContext, Future}
 import ExecutionContext.Implicits.global
-import scala.util.{Failure, Success, Try}
+import scala.util._
 
 trait FutureEffect {
   val runningForever = Future {
@@ -49,18 +49,29 @@ trait FutureEffect {
 trait UserFutureExample {
   import Effects._
 
-  trait flat {
-    val userAccount: ((String, String)) => Future[User]
-    val freeAccount: ((String, String)) => Future[User]
-    val subscription: User => Future[Subscription]
-    val fee: Subscription => Future[Fee]
+  trait plain {
+    val buyBate: String => Bate
+    val makeBate: String => Bate
+    val castLine: Bate => Line
+    val hookFish: Line => Fish
+    def goFishing(bestBateForFish: Future[String]): Future[Fish] =
+      bestBateForFish.map(buyBate).map(castLine).map(hookFish)
+  }
 
-    def feeByCreds(namePass: Future[(String, String)]): Future[Fee] = for {
-      np <- namePass
-      acc <- userAccount(np).fallbackTo(freeAccount(np))
-      sub <- subscription(acc)
-      fee <- fee(sub)
-    } yield fee
+
+  trait flat {
+    val buyBate: String => Future[Bate]
+    val makeBate: String => Future[Bate]
+    val castLine: Bate => Future[Line]
+    val hookFish: Line => Future[Fish]
+
+    def goFishing(bestBateForFish: Future[String]): Future[Fish] = for {
+      bateName <- bestBateForFish
+      bate <- buyBate(bateName).fallbackTo(makeBate(bateName))
+      line <- castLine(bate)
+      fish <- hookFish(line)
+    } yield fish
+
   }
 
 }

@@ -20,12 +20,12 @@ trait EitherEffect {
 
   val i = 100
 
-  val either = Either.cond(i > 10, i, "i is greater then 10")
+  val either: Either[String, Int] = Either.cond(i > 10, i, "i is greater then 10")
 
   val right1 = Right(10)
   right1.withLeft[String]
 
-  val left1 = Left("HoHoHo").withRight[BigDecimal]
+  val left1: Either[String, BigDecimal] = Left("HoHoHo").withRight[BigDecimal]
 
 
   if (either.isRight) println("Got right")
@@ -51,29 +51,26 @@ trait UserEitherExample {
   import Effects._
 
   trait plain {
-    val userAccount: ((String, String)) => User
-    val freeAccount: ((String, String)) => User
-    val subscription: User => Subscription
-    val fee: Subscription => Fee
-    def feeByCreds(namePass: Either[String, (String, String)]): Either[String, Fee] = namePass.map(userAccount).map(subscription).map(fee)
+    val buyBate: String => Bate
+    val makeBate: String => Bate
+    val castLine: Bate => Line
+    val hookFish: Line => Fish
+    def goFishing(bestBateForFishOrCurse: Either[String, String]): Either[String, Fish] =
+      bestBateForFishOrCurse.map(buyBate).map(castLine).map(hookFish)
   }
 
   trait flat {
-    val userAccount: ((String, String)) => Either[String, User]
-    val freeAccount: ((String, String)) => Either[String, User]
-    val subscription: User => Either[String, Subscription]
-    val fee: Subscription => Either[String, Fee]
+    val buyBate: String => Either[String, Bate]
+    val makeBate: String => Either[String, Bate]
+    val castLine: Bate => Either[String, Line]
+    val hookFish: Line => Either[String, Fish]
 
-    private def userByNP(np: (String, String)): Either[String, User] = {
-      userAccount(np).fold(_ => freeAccount(np), Right(_))
-    }
-
-    def feeByCreds(namePass: Either[String, (String, String)]): Either[String, Fee] = for {
-      np <- namePass
-      acc <- userByNP(np)
-      sub <- subscription(acc)
-      fee <- fee(sub)
-    } yield fee
+    def goFishing(bestBateForFishOrCurse: Either[String, String]): Either[String, Fish] = for {
+      bateName <- bestBateForFishOrCurse
+      bate <- buyBate(bateName).fold(_ => makeBate(bateName), Right(_))
+      line <- castLine(bate)
+      fish <- hookFish(line)
+    } yield fish
   }
 
 }

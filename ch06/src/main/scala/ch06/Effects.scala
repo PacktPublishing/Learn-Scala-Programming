@@ -2,9 +2,9 @@ package ch06
 
 object Effects extends App {
 
-  type User
-  type Subscription
-  type Fee
+  type Bate
+  type Line
+  type Fish
 
   import java.util
 

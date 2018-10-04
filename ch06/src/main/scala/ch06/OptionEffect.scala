@@ -48,24 +48,35 @@ object OptionEffect extends App {
   opt.fold("Value for an empty case")((i: Int) => s"The value is $i")
 }
 
-trait UserOptionExample {
+trait FishingOptionExample {
 
   import Effects._
+  trait plain {
+    val buyBate: String => Bate
+    val makeBate: String => Bate
+    val castLine: Bate => Line
+    val hookFish: Line => Fish
 
-  val userAccount: ((String, String)) => Option[User]
-  val freeAccount: ((String, String)) => Option[User]
-  val subscription: User => Option[Subscription]
-  val fee: Subscription => Option[Fee]
+    def goFishing(bestBateForFish: Option[String]): Option[Fish] =
+      bestBateForFish.map(buyBate).map(castLine).map(hookFish)
+  }
 
-  def feeByCredentialsOld(namePass: Option[(String, String)]): Option[Fee] =
-    namePass.flatMap(userAccount).flatMap(subscription).flatMap(fee)
+  trait flat {
+    val buyBate: String => Option[Bate]
+    val makeBate: String => Option[Bate]
+    val castLine: Bate => Option[Line]
+    val hookFish: Line => Option[Fish]
 
-  def feeByCredentials(namePass: Option[(String, String)]): Option[Fee] =
-    for {
-      np <- namePass
-      acc <- userAccount(np).orElse(freeAccount(np))
-      sub <- subscription(acc)
-      fee <- fee(sub)
-    } yield fee
+    def goFishingOld(bestBateForFish: Option[String]): Option[Fish] =
+      bestBateForFish.flatMap(buyBate).flatMap(castLine).flatMap(hookFish)
+
+    def goFishing(bestBateForFish: Option[String]): Option[Fish] =
+      for {
+        bateName <- bestBateForFish
+        bate <- buyBate(bateName).orElse(makeBate(bateName))
+        line <- castLine(bate)
+        fish <- hookFish(line)
+      } yield fish
+  }
 
 }

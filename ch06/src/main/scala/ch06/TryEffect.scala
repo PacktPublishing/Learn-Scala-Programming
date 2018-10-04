@@ -9,7 +9,7 @@ trait TryEffect {
   val success = Success("Well")
   val failure = Failure(new Exception("Not so well"))
 
-  val firstTry = try {
+  val firstTry: Try[String] = try {
     Success(readLine())
   } catch {
     case err: IOError => Failure(err)
@@ -48,25 +48,27 @@ trait UserTryExample {
   import Effects._
 
   trait plain {
-    val userAccount: ((String, String)) => User
-    val freeAccount: ((String, String)) => User
-    val subscription: User => Subscription
-    val fee: Subscription => Fee
-    def feeByCreds(namePass: Try[(String, String)]): Try[Fee] = namePass.map(userAccount).map(subscription).map(fee)
+    val buyBate: String => Bate
+    val makeBate: String => Bate
+    val castLine: Bate => Line
+    val hookFish: Line => Fish
+    def goFishing(bestBateForFishOrCurse: Try[String]): Try[Fish] =
+      bestBateForFishOrCurse.map(buyBate).map(castLine).map(hookFish)
   }
 
   trait flat {
-    val userAccount: ((String, String)) => Try[User]
-    val freeAccount: ((String, String)) => Try[User]
-    val subscription: User => Try[Subscription]
-    val fee: Subscription => Try[Fee]
+    val buyBate: String => Try[Bate]
+    val makeBate: String => Try[Bate]
+    val castLine: Bate => Try[Line]
+    val hookFish: Line => Try[Fish]
 
-    def feeByCreds(namePass: Try[(String, String)]): Try[Fee] = for {
-      np <- namePass
-      acc <- userAccount(np).fold(_ => freeAccount(np), Success(_))
-      sub <- subscription(acc)
-      fee <- fee(sub)
-    } yield fee
+    def goFishing(bestBateForFishOrCurse: Try[String]): Try[Fish] = for {
+      bateName <- bestBateForFishOrCurse
+      bate <- buyBate(bateName).fold(_ => makeBate(bateName), Success(_))
+      line <- castLine(bate)
+      fish <- hookFish(line)
+    } yield fish
+
   }
 
 }
