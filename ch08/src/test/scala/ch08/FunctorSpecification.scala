@@ -8,10 +8,10 @@ import scala.util.Try
 
 object FunctorSpecification extends Properties("Functor") {
 
-  def id[A, F[_]](implicit fu: Functor[F], arbFA: Arbitrary[F[A]]): Prop =
-    forAll { as: F[A] => fu.map(as)(identity) == as }
+  def id[A, F[_]](implicit F: Functor[F], arbFA: Arbitrary[F[A]]): Prop =
+    forAll { as: F[A] => F.map(as)(identity) == as }
 
-  def associativity[A, B, C, F[_]](implicit fu: Functor[F],
+  def associativity[A, B, C, F[_]](implicit F: Functor[F],
                                    arbFA: Arbitrary[F[A]],
                                    arbB: Arbitrary[B],
                                    arbC: Arbitrary[C],
@@ -20,11 +20,11 @@ object FunctorSpecification extends Properties("Functor") {
     val f = Arbitrary.arbFunction1[A, B]
     val g = Arbitrary.arbFunction1[B, C]
     forAll((as: F[A], f: A => B, g: B => C) => {
-      fu.map(fu.map(as)(f))(g) == fu.map(as)(f andThen g)
+      F.map(F.map(as)(f))(g) == F.map(as)(f andThen g)
     })
   }
 
-  def functor[A, B, C, F[_]](implicit fu: Functor[F], arbFA: Arbitrary[F[A]],
+  def functor[A, B, C, F[_]](implicit F: Functor[F], arbFA: Arbitrary[F[A]],
                              arbB: Arbitrary[B],
                              arbC: Arbitrary[C],
                              cogenA: Cogen[A],

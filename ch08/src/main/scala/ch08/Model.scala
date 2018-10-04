@@ -2,13 +2,11 @@ package ch08
 
 import java.time.LocalDateTime
 
-import ch08.Model._
-import ch08.Check._
-import org.scalacheck.Gen
+import ch08.ModelCheck._
 
 import scala.language.higherKinds
 
-object Model {
+object Model extends App {
 
   final case class Fish(volume: Int,
                         weight: Int,
@@ -27,9 +25,9 @@ object Model {
 
   final case class FedFish(untilWhen: LocalDateTime)
 
-  val check: Fish => FreshFish = f => FreshFish(f)
-  val prepare: FreshFish => FriedFish = f => FriedFish(f.fish.weight)
-  val eat: Eatable => Unit = _ => println("Yum yum...")
+  lazy val check: Fish => FreshFish = f => FreshFish(f)
+  lazy val prepare: FreshFish => FriedFish = f => FriedFish(f.fish.weight)
+  lazy val eat: Eatable => Unit = _ => println("Yum yum...")
 
   def prepareAndEat: Fish => Unit = check andThen prepare andThen eat
 
@@ -59,12 +57,12 @@ object Model {
   def bakePie(fish: FreshFish, potatoes: Int, milk: Float): FishPie =
     FishPie(fish.fish.weight)
 
-  val freshFishMaker: List[Fish] => List[FreshFish] =
+  lazy val freshFishMaker: List[Fish] => List[FreshFish] =
     Functor.bucketFunctor.mapC(check)
 
   type Bucket[S] = List[S]
 
-  def bucketOfFish: Bucket[Fish] = listOfFishGen.sample.get
+  def bucketOfFish: Bucket[Fish] = listOfFishGen.sample.get.take(3)
 
   {
     def bakeFish(potatoes: Int, milk: Float): FreshFish => FishPie =
@@ -74,17 +72,14 @@ object Model {
       mapFunc(freshFishMaker(bucketOfFish))(bakeFish(20, 0.5f))
   }
 
+  def bakeFish: FreshFish => Int => Float => FishPie = (bakePie _).curried
+
+  lazy val pieInProgress: List[Int => Float => FishPie] =
+    mapFunc(freshFishMaker(bucketOfFish))(bakeFish)
+
   /*
   {
-    def bakeFish: FreshFish => Int => Float => FishPie = (bakePie _).curried
-
-    val pieInProgress: List[Int => Float => FishPie] =
-      mapFunc(freshFishMaker(bucketOfFish))(bakeFish)
-
-    val potatoes = Gen.listOf(Gen.posNum[Int])
-    val milks = Gen.listOf(Gen.posNum[Float])
-
-    mapFunc(pieInProgress) { (pieFactory: Int => Float => FishPie) =>
+    mapFunc(pie) { (pieFactory: Int => Float => FishPie) =>
       mapFunc(potatoes) { potato =>
         mapFunc(milks) { milk =>
           pieFactory(potato)(milk)
@@ -94,10 +89,15 @@ object Model {
   }
   */
 
+  import Applicative._
+  def pie(potato: Bucket[Int], milk: Bucket[Float]) = bucketApplicative(milk)(bucketApplicative(potato)(pieInProgress))
+
+  pie(List(10), List(2f))
+
 }
 
-object Check {
-
+object ModelCheck {
+  import Model._
   import org.scalacheck._
 
   val fishGen: Gen[Fish] = for {

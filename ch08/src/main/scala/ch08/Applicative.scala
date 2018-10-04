@@ -22,6 +22,7 @@ object Applicative {
       case (aa :: as, ff :: fs) =>
         val fab: (A => B) => B = f => f(aa)
         ff(aa) :: as.map(ff) ::: fs.map(fab) ::: apply(as)(fs)
+      case orher => Nil
     }
 
     override def unit[A](a: => A): List[A] = List(a)
