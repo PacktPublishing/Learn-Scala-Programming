@@ -26,6 +26,7 @@ object Chef {
             context.spawn(mixerFactory,
               s"Mixer_$i",
               DispatcherSelector.fromConfig("mixers-dispatcher"))
+        mixers.foreach(mixer => context.watchWith(mixer, BrokenMixer(mixer)))
         val msg = Groceries(1, flour / eggs, sugar / eggs, chocolate / eggs)
         mixers.foreach(_ ! Mixer.Mix(msg, context.self))
         mixing(mixers.toSet, 0, manager, mixerFactory)

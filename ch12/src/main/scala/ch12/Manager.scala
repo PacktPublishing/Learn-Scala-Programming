@@ -30,7 +30,6 @@ object Manager {
     val chef = context.spawn(Chef.idle(mixerBuilder), "Chef")
     val cook = context.spawn(Cook.form, "Cook")
     val baker = context.spawn(Baker.turnOvenOn, "Baker")
-    // val _ = context.spawn(Bakery.seller, "Seller")
 
     Behaviors.withTimers { timers =>
       timers.startPeriodicTimer(Anxiety, StartBaking, idleTimeout)
@@ -80,7 +79,7 @@ object Manager {
             chef ! Chef.Mix(g, context.self)
             manage(chef, cook, baker)
         }
-      def waitingFordough: Behavior[Command] =
+      def waitingForDough: Behavior[Command] =
         Behaviors.receiveMessagePartial[Command] {
           case ReceiveDough(p) =>
             context.log.info("Forming {}", p)
@@ -104,7 +103,7 @@ object Manager {
       lookupSeller orElse
         sendBoyShopping orElse
         waitingForGroceries orElse
-        waitingFordough orElse
+        waitingForDough orElse
         waitingForRawCookies orElse
         waitingForReadyCookies
 
@@ -115,8 +114,3 @@ object Manager {
     ShoppingList(eggs, eggs * 50, eggs * 10, eggs * 5)
   }
 }
-/*
-  class MotorOverheatException extends Exception
-  class SlowRotationSpeedException extends Exception
-  class StrongVibrationException extends Exception
- */

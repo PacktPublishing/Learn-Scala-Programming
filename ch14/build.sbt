@@ -15,7 +15,6 @@ lazy val akkaVersion    = "2.5.14"
 lazy val akkaPersistenceVersion = "3.4.0"
 lazy val staminaVersion = "0.1.4"
 
-
 lazy val akkaHttp = (project in file("akka-http")).
   settings(
     inThisBuild(List(
@@ -30,11 +29,13 @@ lazy val akkaHttp = (project in file("akka-http")).
       "com.typesafe.akka"   %% "akka-stream"            % akkaVersion,
       "com.typesafe.akka"   %% "akka-persistence"       % akkaVersion,
       "com.typesafe.akka"   %% "akka-persistence-query" % akkaVersion,
+      "com.typesafe.akka"   %% "akka-slf4j"             % akkaVersion,
 
       "com.github.dnvriend" %% "akka-persistence-jdbc"  % akkaPersistenceVersion,
       "com.scalapenos"      %% "stamina-json"           % staminaVersion,
       "com.h2database"      %  "h2"                     % h2Version,
       "org.flywaydb"        %  "flyway-core"            % flywayVersion,
+      "ch.qos.logback"      %  "logback-classic"        % logbackVersion,
 
       "com.typesafe.akka"   %% "akka-http-testkit"      % akkaHttpVersion   % Test,
       "com.typesafe.akka"   %% "akka-testkit"           % akkaVersion       % Test,

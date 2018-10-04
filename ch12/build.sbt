@@ -2,9 +2,9 @@ name := "akka-typed-bakery"
 
 version := "1.0"
 
-scalaVersion := "2.12.6"
+scalaVersion := "2.12.7"
 
-lazy val akkaVersion = "2.5.14"
+lazy val akkaVersion = "2.5.17"
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor-typed" % akkaVersion,

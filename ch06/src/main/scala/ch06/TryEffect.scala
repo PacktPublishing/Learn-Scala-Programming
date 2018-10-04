@@ -68,7 +68,6 @@ trait UserTryExample {
       line <- castLine(bate)
       fish <- hookFish(line)
     } yield fish
-
   }
 
 }

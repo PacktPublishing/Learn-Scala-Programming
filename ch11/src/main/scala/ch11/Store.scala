@@ -6,9 +6,9 @@ import Manager.ShoppingList
 import Mixer.Groceries
 
 abstract class Store {
-  lazy val store = ActorSystem("Store", ConfigFactory.load("grocery.conf"))
+  val store = ActorSystem("Store", ConfigFactory.load("grocery.conf"))
 
-  lazy val seller: ActorRef = store.actorOf(Props(new Actor {
+  val seller: ActorRef = store.actorOf(Props(new Actor {
     override def receive: Receive = {
       case s: ShoppingList =>
         ShoppingList.unapply(s).map(Groceries.tupled).foreach(sender() ! _)

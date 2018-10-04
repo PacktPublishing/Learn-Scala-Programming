@@ -27,7 +27,6 @@ trait EitherEffect {
 
   val left1: Either[String, BigDecimal] = Left("HoHoHo").withRight[BigDecimal]
 
-
   if (either.isRight) println("Got right")
   if (either.isLeft) println("Got left")
 
@@ -71,6 +70,7 @@ trait UserEitherExample {
       line <- castLine(bate)
       fish <- hookFish(line)
     } yield fish
+
   }
 
 }

@@ -2,7 +2,7 @@ package ch06
 
 import scala.concurrent.{ExecutionContext, Future}
 import ExecutionContext.Implicits.global
-import scala.util._
+import scala.util.{Failure, Success, Try}
 
 trait FutureEffect {
   val runningForever = Future {
@@ -57,7 +57,6 @@ trait UserFutureExample {
     def goFishing(bestBateForFish: Future[String]): Future[Fish] =
       bestBateForFish.map(buyBate).map(castLine).map(hookFish)
   }
-
 
   trait flat {
     val buyBate: String => Future[Bate]
