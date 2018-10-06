@@ -6,7 +6,7 @@ import scala.util.Try
 trait Functor[F[_]] {
   def map[A,B](in: F[A])(f: A => B): F[B]
 
-  def mapC[A,B](f: A => B): F[A] => F[B]
+  def mapC[A,B](f: A => B): F[A] => F[B] = fa => map(fa)(f)
 }
 
 object Functor {

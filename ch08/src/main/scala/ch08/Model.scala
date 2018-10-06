@@ -4,7 +4,8 @@ import java.time.LocalDateTime
 
 import ch08.ModelCheck._
 
-import scala.language.higherKinds
+import scala.language.{higherKinds, reflectiveCalls}
+import scala.util.{Random, Success, Try}
 
 object Model extends App {
 
@@ -65,11 +66,11 @@ object Model extends App {
   def bucketOfFish: Bucket[Fish] = listOfFishGen.sample.get.take(3)
 
   {
-    def bakeFish(potatoes: Int, milk: Float): FreshFish => FishPie =
+    def bakeFishAtOnce(potatoes: Int, milk: Float): FreshFish => FishPie =
       bakePie(_: FreshFish, potatoes, milk)
 
     val pie: Seq[FishPie] =
-      mapFunc(freshFishMaker(bucketOfFish))(bakeFish(20, 0.5f))
+      mapFunc(freshFishMaker(bucketOfFish))(bakeFishAtOnce(20, 0.5f))
   }
 
   def bakeFish: FreshFish => Int => Float => FishPie = (bakePie _).curried
@@ -94,6 +95,56 @@ object Model extends App {
 
   pie(List(10), List(2f))
 
+  def pie3[F[_]: Applicative](fish: F[FreshFish], potato: F[Int], milk: F[Float]): F[FishPie] =
+    implicitly[Applicative[F]].map3(fish, potato, milk)(bakePie)
+
+  def checkHonestly[F[_] : Applicative](noFish: F[FreshFish])(fish: Fish): F[FreshFish] =
+    if (Random.nextInt(3) == 0) noFish else implicitly[Applicative[F]].unit(FreshFish(fish))
+
+  def genericPie3[O[_], B[_]](fish: B[O[FreshFish]], potato: B[O[Int]], milk: B[O[Float]])(implicit a:Applicative[({type BO[x] = B[O[x]]})#BO]): B[O[FishPie]] = {
+    a.map3(fish, potato, milk)(bakePie)
+  }
+
+  val trueFreshFish: List[Option[FreshFish]] = bucketOfFish.map(checkHonestly(Option.empty[FreshFish]))
+  def freshPotato(count: Int) = List(Some(count))
+  def freshMilk(gallons: Float) = List(Some(gallons))
+
+  implicit val bucketOfFresh: Applicative[({ type T[x] = Bucket[Option[x]]})#T] =
+    bucketApplicative.compose(optionApplicative)
+
+  val freshPie = pie3[({ type T[x] = Bucket[Option[x]]})#T](trueFreshFish, freshPotato(10), freshMilk(0.2f))
+
+  println(freshPie)
+
+  println(Traversable.bucketTraversable.sequence(freshPie))
+
+  val allOrNothing = Traversable.bucketTraversable.traverse(bucketOfFish) { a: Fish =>
+    checkHonestly(Option.empty[FreshFish])(a).map(f => bakePie(f, 10, 0.2f))
+  }
+
+  println(allOrNothing)
+
+
+  def deep[X](x: X) = Success(Right(x))
+
+  type DEEP[x] = Try[Either[Unit, Bucket[Option[x]]]]
+
+  implicit val deepBucket: Applicative[DEEP] =
+    tryApplicative.compose(eitherApplicative[Unit].compose(bucketApplicative.compose(optionApplicative)))
+
+  val deeplyPackaged =
+    pie3[DEEP](deep(trueFreshFish), deep(freshPotato(10)), deep(freshMilk(0.2f)))
+
+  println(deeplyPackaged)
+
+  import Traversable._
+  val deepTraverse = tryTraversable.compose(eitherTraversable[Unit].compose(bucketTraversable))
+
+  val deepYummi = deepTraverse.traverse(deeplyPackaged) { pie: Option[FishPie] =>
+    pie.foreach(p => println(s"Yummi $p"))
+    pie
+  }
+  println(deepYummi)
 }
 
 object ModelCheck {
