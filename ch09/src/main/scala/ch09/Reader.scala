@@ -1,10 +1,15 @@
 package ch09
 
 final case class Reader[R, A](run: R => A) {
-  def flatMap[B](f: A => Reader[R, B]): Reader[R, B] = Reader { r: R =>
+  def compose[B](f: A => Reader[R, B]): Reader[R, B] = Reader { r: R =>
     f(run(r)).run(r)
   }
 }
+
+object Reader {
+  def apply[R, A](a: => A): Reader[R, A] = Reader(_ => a)
+}
+
 
 object ReaderExample extends App {
   final case class Limits(speed: Float, angle: Double)
@@ -23,5 +28,5 @@ object ReaderExample extends App {
   import Monad.readerMonad
   import Boat.{move, boat}
 
-  println(move(go, turn)(boat).run(Limits(10f, 0.1)))
+  println(move(go, turn)(Reader(boat)).run(Limits(10f, 0.1)))
 }

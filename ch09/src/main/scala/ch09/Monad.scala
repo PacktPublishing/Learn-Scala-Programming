@@ -84,13 +84,13 @@ object Monad {
   }
 
   implicit def readerMonad[R] = new Monad[Reader[R, ?]] {
-    override def unit[A](a: => A): Reader[R, A] = Reader(_ => a)
-    override def flatMap[A, B](a: Reader[R, A])(f: A => Reader[R, B]): Reader[R, B] = a.flatMap(f)
+    override def unit[A](a: => A): Reader[R, A] = Reader(a)
+    override def flatMap[A, B](a: Reader[R, A])(f: A => Reader[R, B]): Reader[R, B] = a.compose(f)
   }
 
   implicit def writerMonad[W : Monoid] = new Monad[Writer[W, ?]] {
-    override def unit[A](a: => A): Writer[W, A] = Writer((a, implicitly[Monoid[W]].identity))
-    override def flatMap[A, B](a: Writer[W, A])(f: A => Writer[W, B]): Writer[W, B] = a.flatMap(f)
+    override def unit[A](a: => A): Writer[W, A] = Writer(a)
+    override def flatMap[A, B](a: Writer[W, A])(f: A => Writer[W, B]): Writer[W, B] = a.combine(f)
   }
 
   object lowPriorityImplicits {

@@ -96,17 +96,16 @@ object PolymorphicStateExample1 extends App {
 }
 
 object PolymorphicStateExample2 extends App {
-  type FuelState[B] = State[Float, B]
 
   import StateExample.consume
 
-  def go(speed: Float, time: Float)(boat: Boat): FuelState[Boat] = new State((fuel: Float) => {
+  def go(speed: Float, time: Float)(boat: Boat): State[Float, Boat] = new State((fuel: Float) => {
     val newFuel = fuel - consume(speed, time)
     (boat.go(speed, time), newFuel)
   })
 
   import Monad.stateMonad
   import Boat.{move, turn, boat}
-
-  println(move(go, turn[FuelState])(boat).run(1000f))
+  type FuelState[B] = State[Float, B]
+  println(move(go, turn[FuelState])(State(boat)).run(1000f))
 }

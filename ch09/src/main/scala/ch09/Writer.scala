@@ -2,8 +2,8 @@ package ch09
 
 import ch07.Monoid
 
-case class Writer[W: Monoid, A](run: (A, W)) {
-  def flatMap[B](f: A => Writer[W, B]): Writer[W, B] = Writer {
+final case class Writer[W: Monoid, A](run: (A, W)) {
+  def combine[B](f: A => Writer[W, B]): Writer[W, B] = Writer {
     val (a, w) = run
     val (b, ww) = f(a).run
     val www = implicitly[Monoid[W]].op(w, ww)
@@ -11,20 +11,26 @@ case class Writer[W: Monoid, A](run: (A, W)) {
   }
 }
 
+object Writer {
+  def apply[W: Monoid, A](a: => A): Writer[W, A] = Writer((a, implicitly[Monoid[W]].identity))
+}
+
+
 object WriterExample extends App {
 
-  implicit def listMonoid[A]: Monoid[List[A]] = new Monoid[List[A]] {
-    override def identity: List[A] = List.empty[A]
-    override def op(l: List[A], r: List[A]): List[A] = l ++ r
+  implicit def vectorMonoid[A]: Monoid[Vector[A]] = new Monoid[Vector[A]] {
+    override def identity: Vector[A] = Vector.empty[A]
+    override def op(l: Vector[A], r: Vector[A]): Vector[A] = l ++ r
   }
-  type WriterTracking[A] = Writer[List[(Double, Double)], A]
 
-  import Monad.writerMonad
+
+  type WriterTracking[A] = Writer[Vector[(Double, Double)], A]
 
   def go(speed: Float, time: Float)(boat: Boat): WriterTracking[Boat] =
-    new WriterTracking((boat.go(speed, time), List(boat.position)))
+    new WriterTracking((boat.go(speed, time), Vector(boat.position)))
 
+  import Monad.writerMonad
   import Boat.{move, boat, turn}
 
-  println(move(go, turn[WriterTracking])(boat).run)
+  println(move(go, turn[WriterTracking])(Writer(boat)).run)
 }

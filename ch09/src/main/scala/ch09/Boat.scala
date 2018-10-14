@@ -15,6 +15,8 @@ final case class Boat(direction: Double, position: (Double, Double)) {
 import scala.language.{higherKinds, implicitConversions}
 
 object Boat {
+  val boat = Boat(0, (0d, 0d))
+
   import Monad.lowPriorityImplicits._
 
   def go[M[_]: Monad]: (Float, Float) => Boat => M[Boat] =
@@ -23,8 +25,8 @@ object Boat {
   def turn[M[_]: Monad]: Double => Boat => M[Boat] =
     angle => boat => Monad[M].unit(boat.turn(angle))
 
-  def move[M[_]: Monad](go: (Float, Float) => Boat => M[Boat], turn: Double => Boat => M[Boat])(boat: Boat): M[Boat] = for {
-    a <- Monad[M].unit(boat)
+  def move[A, M[_]: Monad](go: (Float, Float) => A => M[A], turn: Double => A => M[A])(boat: M[A]): M[A] = for {
+    a <- boat
     b <- go(10,5)(a)
     c <- turn(0.5)(b)
     d <- go(20, 20)(c)
@@ -32,5 +34,4 @@ object Boat {
     f <- go(1,1)(e)
   } yield f
 
-  val boat = Boat(0, (0d, 0d))
 }
