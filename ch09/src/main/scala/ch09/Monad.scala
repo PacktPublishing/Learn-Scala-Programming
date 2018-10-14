@@ -83,53 +83,24 @@ object Monad {
     override def flatMap[A, B](a: State[S, A])(f: A => State[S, B]): State[S, B] = a.compose(f)
   }
 
-  implicit def readerMonad[R] = new Monad[({type T[A] = Reader[R, A]})#T] {
+  implicit def readerMonad[R] = new Monad[Reader[R, ?]] {
     override def unit[A](a: => A): Reader[R, A] = Reader(_ => a)
     override def flatMap[A, B](a: Reader[R, A])(f: A => Reader[R, B]): Reader[R, B] = a.flatMap(f)
   }
 
-  implicit def writerMonad[W : Monoid] = new Monad[({type T[A] = Writer[W, A]})#T] {
-    override def unit[A](a: => A): Writer[W, A] = Writer(() => (a, implicitly[Monoid[W]].identity))
+  implicit def writerMonad[W : Monoid] = new Monad[Writer[W, ?]] {
+    override def unit[A](a: => A): Writer[W, A] = Writer((a, implicitly[Monoid[W]].identity))
     override def flatMap[A, B](a: Writer[W, A])(f: A => Writer[W, B]): Writer[W, B] = a.flatMap(f)
   }
 
-  object ops {
-    implicit def f2monad[A, F[_] : Monad](f: F[A]): Monad[F] = Monad[F]
-  }
-
-}
-
-case class State[S, A](run: S => (A, S)) {
-  def compose[B](f: A => State[S, B]): State[S, B] = {
-    val composedRuns = (s: S) => {
-      val (a, nextS) = run(s)
-      f(a).run(nextS)
+  object lowPriorityImplicits {
+    implicit class MonadF[A, F[_] : Monad](val value: F[A]) {
+      private val M = implicitly[Monad[F]]
+      def unit(a: A) = M.unit(a)
+      def flatMap[B](fab: A => F[B]): F[B] = M.flatMap(value)(fab)
+      def map[B](fab: A => B): F[B] = M.map(value)(fab)
     }
-    State(composedRuns)
   }
+
 }
 
-object State {
-  def apply[S, A](a: => A): State[S, A] = State(s => (a, s))
-  def get[S]: State[S, S] = State(s => (s, s))
-  def set[S](s: => S): State[S, Unit] = State(_ => ((), s))
-}
-
-// The action of Reader's `flatMap` is to pass the `r` argument along to both the
-// outer Reader and also to the result of `f`, the inner Reader. Similar to how
-// `State` passes along a state, except that in `Reader` the "state" is read-only.
-
-case class Reader[R, A](run: R => A) {
-  def flatMap[B](f: A => Reader[R, B]): Reader[R, B] = Reader { r: R =>
-    f(run(r)).run(r)
-  }
-}
-
-case class Writer[W : Monoid, A](run: () => (A, W)) {
-  def flatMap[B](f: A => Writer[W, B]): Writer[W, B] = Writer(run = {
-    val (a, w) = run()
-    val (b, ww) = f(a).run()
-    val www = implicitly[Monoid[W]].op(w, ww)
-    () => (b, www)
-  })
-}

@@ -3,12 +3,11 @@ package ch09
 import ch09.Monad.Id
 import org.scalacheck._
 import Prop._
-import ch07.Monoid
 
 import scala.language.higherKinds
 import scala.util.Try
 
-object MonadSpecification extends Properties("Monad") with MonadArbitrary {
+object MonadSpecification extends Properties("Monad") {
 
   def associativity[A, B, C, M[_]](implicit M: Monad[M],
                                    arbMA: Arbitrary[M[A]],
@@ -92,71 +91,5 @@ object MonadSpecification extends Properties("Monad") with MonadArbitrary {
   property("Monad[List] and String => Int, Int => Boolean") = {
     monad[String, Int, Boolean, List]
   }
-
-  type LongState[A] = State[Long, A]
-
-  implicit val intGen = Gen.posNum[Int]
-  implicit val longGen = Gen.posNum[Long]
-  implicit val stringGen = Gen.alphaStr
-  implicit val boolGen = Gen.oneOf(true, false)
-
-  property("Monad[LongState] and Int => String, String => Long") = {
-    monad[Int, String, Long, LongState]
-  }
-
-  property("Monad[IntState] and String => Int, Int => Boolean") = {
-    monad[String, Int, Boolean, LongState]
-  }
-
-  type StringState[A] = State[String, A]
-
-  property("Monad[StringState] and Int => String, String => Long") = {
-    monad[Int, String, Long, StringState]
-  }
-
-  property("Monad[StringState] and String => Int, Int => Boolean") = {
-    monad[String, Int, Boolean, StringState]
-  }
-
-  type StringWriter[A] = Writer[String, A]
-
-  property("Monad[StringWriter] and Int => String, String => Long") = {
-    monad[Int, String, Long, StringWriter]
-  }
-
-  property("Monad[StringWriter] and String => Int, Int => Boolean") = {
-    monad[String, Int, Boolean, StringWriter]
-  }
-
-}
-
-trait MonadArbitrary {
-  implicit  def stateGen[S, A](implicit co1: Cogen[S], genA: Gen[A], genS: Gen[S]): Gen[State[S, A]] = {
-    val genTuple: Gen[(A, S)] = for {
-      a <- genA
-      s <- genS
-    } yield (a, s)
-    for {
-      run <- Gen.function1[S, (A, S)](genTuple)
-    } yield State(run)
-  }
-
-  implicit def writerGen[W : Monoid, A](implicit co1: Cogen[W], genA: Gen[A], genW: Gen[W]): Gen[Writer[W, A]] = {
-    val genTuple: Gen[(A, W)] = for {
-      a <- genA
-      w <- genW
-    } yield (a, w)
-    for {
-      run <- Gen.function0[(A, W)](genTuple)
-    } yield Writer(run)
-  }
-
-  implicit def arbitraryState[S, A](implicit co1: Cogen[S], genA: Gen[A], genS: Gen[S]): Arbitrary[State[S, A]] =
-    Arbitrary(stateGen)
-
-  implicit def arbitraryWriter[W : Monoid, A](implicit co1: Cogen[W], genA: Gen[A], genW: Gen[W]): Arbitrary[Writer[W, A]] =
-    Arbitrary(writerGen)
-
-  implicit def arbitraryList[A : Arbitrary] = Arbitrary.arbContainer[List, A]
 
 }
