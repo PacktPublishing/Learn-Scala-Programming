@@ -10,7 +10,7 @@ trait Traversable[F[_]] extends Functor[F] {
   def traverse[A,B,G[_]: Applicative](a: F[A])(f: A => G[B]): G[F[B]]
   def sequence[A,G[_]: Applicative](a: F[G[A]]): G[F[A]] = traverse(a)(identity)
 
-  def compose[H[_]](implicit H: Traversable[H]): Traversable[({type f[x] = F[H[x]]})#f] = {
+  implicit def compose[H[_]](implicit H: Traversable[H]): Traversable[({type f[x] = F[H[x]]})#f] = {
     val F = this
     new Traversable[({type f[x] = F[H[x]]})#f] {
       override def traverse[A, B, G[_] : Applicative](fa: F[H[A]])(f: A => G[B]) =
