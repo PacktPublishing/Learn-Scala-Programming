@@ -17,8 +17,6 @@ object FunctorSpecification extends Properties("Functor") {
                                    arbC: Arbitrary[C],
                                    cogenA: Cogen[A],
                                    cogenB: Cogen[B]): Prop = {
-    val f = Arbitrary.arbFunction1[A, B]
-    val g = Arbitrary.arbFunction1[B, C]
     forAll((as: F[A], f: A => B, g: B => C) => {
       F.map(F.map(as)(f))(g) == F.map(as)(f andThen g)
     })

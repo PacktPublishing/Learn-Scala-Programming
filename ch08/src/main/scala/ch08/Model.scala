@@ -6,6 +6,7 @@ import ch08.ModelCheck._
 
 import scala.language.{higherKinds, reflectiveCalls}
 import scala.util.{Random, Success, Try}
+import scala.{ Traversable => _ }
 
 object Model extends App {
 

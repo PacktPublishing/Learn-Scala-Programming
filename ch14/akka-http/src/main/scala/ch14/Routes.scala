@@ -47,6 +47,9 @@ trait Routes extends JsonSupport {
               rejectEmptyResponse {
                 complete(changedInventory)
               }
+            },
+            get {
+              complete((inventory ? GetArticle(name)).mapTo[Inventory])
             }
           )
         }
@@ -80,6 +83,7 @@ trait Routes extends JsonSupport {
           }
         }
       }
+
 
   lazy val routes: Route = articlesRoutes ~ inventoryRoutes
 
