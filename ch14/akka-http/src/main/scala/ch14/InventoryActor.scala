@@ -2,7 +2,7 @@ package ch14
 
 import akka.actor.{Actor, ActorLogging, Props}
 import akka.persistence.{PersistentActor, RecoveryCompleted, SnapshotOffer}
-import ch14.Commands.GetInventory
+import ch14.Commands.{GetArticle, GetInventory}
 
 object InventoryActor {
   def props: Props = Props[InventoryActor]
@@ -13,7 +13,7 @@ class InventoryActor extends PersistentActor with Actor with ActorLogging {
 
   override def persistenceId: String = InventoryActor.persistenceId
 
-  private var inventory: Inventory = new Inventory(Map.empty)
+  private var inventory: Inventory = Inventory(Map.empty)
 
   override def receiveRecover: Receive = {
     case event: Event                          => inventory = inventory.update(event)
@@ -24,6 +24,9 @@ class InventoryActor extends PersistentActor with Actor with ActorLogging {
   override def receiveCommand: Receive = {
     case GetInventory =>
       sender() ! inventory
+
+    case GetArticle(name) =>
+      sender() ! Inventory(inventory.state.filter(_._1 == name))
 
     case cmd: Command =>
       inventory.canUpdate(cmd) match {

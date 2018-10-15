@@ -29,8 +29,7 @@ class Repository(transactor: Transactor[IO]) {
       }
   }
 
-  def updateStock(
-      inventory: Inventory): Stream[IO, Either[Throwable, Unit]] = {
+  def updateStock(inventory: Inventory): Stream[IO, Either[Throwable, Unit]] = {
     val updates = inventory
       .map {
         case (name, count) =>
@@ -43,11 +42,18 @@ class Repository(transactor: Transactor[IO]) {
       .transact(transactor)
   }
 
-  def getInventory: Stream[IO, Inventory] = {
-    sql"SELECT name, count FROM article"
+  def getInventory: Stream[IO, Inventory] =
+    queryToInventory(inventoryQuery)
+
+  def getArticle(name: String): Stream[IO, Inventory] =
+    queryToInventory( sql"SELECT name, count FROM article where name = $name")
+
+  private val inventoryQuery: Fragment = sql"SELECT name, count FROM article"
+
+  private def queryToInventory(query: Fragment) =
+    query
       .query[(String, Int)]
       .stream
       .transact(transactor)
-  }.fold(Map.empty[String, Int])(_ + _)
-
+      .fold(Map.empty[String, Int])(_ + _)
 }
