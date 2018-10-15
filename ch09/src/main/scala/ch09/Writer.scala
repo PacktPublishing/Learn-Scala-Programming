@@ -22,7 +22,7 @@ object WriterExample extends App {
     override def identity: Vector[A] = Vector.empty[A]
     override def op(l: Vector[A], r: Vector[A]): Vector[A] = l ++ r
   }
-  
+
   type WriterTracking[A] = Writer[Vector[(Double, Double)], A]
 
   def go(speed: Float, time: Float)(boat: Boat): WriterTracking[Boat] =
