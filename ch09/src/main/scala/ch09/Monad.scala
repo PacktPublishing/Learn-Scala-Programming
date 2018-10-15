@@ -90,7 +90,7 @@ object Monad {
 
   implicit def writerMonad[W : Monoid] = new Monad[Writer[W, ?]] {
     override def unit[A](a: => A): Writer[W, A] = Writer(a)
-    override def flatMap[A, B](a: Writer[W, A])(f: A => Writer[W, B]): Writer[W, B] = a.combine(f)
+    override def flatMap[A, B](a: Writer[W, A])(f: A => Writer[W, B]): Writer[W, B] = a.compose(f)
   }
 
   object lowPriorityImplicits {

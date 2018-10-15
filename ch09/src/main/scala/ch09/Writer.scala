@@ -3,7 +3,7 @@ package ch09
 import ch07.Monoid
 
 final case class Writer[W: Monoid, A](run: (A, W)) {
-  def combine[B](f: A => Writer[W, B]): Writer[W, B] = Writer {
+  def compose[B](f: A => Writer[W, B]): Writer[W, B] = Writer {
     val (a, w) = run
     val (b, ww) = f(a).run
     val www = implicitly[Monoid[W]].op(w, ww)
@@ -22,8 +22,7 @@ object WriterExample extends App {
     override def identity: Vector[A] = Vector.empty[A]
     override def op(l: Vector[A], r: Vector[A]): Vector[A] = l ++ r
   }
-
-
+  
   type WriterTracking[A] = Writer[Vector[(Double, Double)], A]
 
   def go(speed: Float, time: Float)(boat: Boat): WriterTracking[Boat] =
