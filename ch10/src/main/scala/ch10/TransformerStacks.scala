@@ -12,7 +12,7 @@ object TransformerStacks {
 
   type Inner[A] = EitherT[Future, String, A]
   type Outer[F[_], A] = OptionT[F, A]
-  type Stack[A] = Outer[Inner, A] // OptionT[EitherT[Future, String, A], A]
+  type Stack[A] = Outer[Inner, A]
 
 }
 
