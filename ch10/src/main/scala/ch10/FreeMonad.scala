@@ -48,17 +48,32 @@ object FreeMonad extends App {
     fish <- hookFish(line)
   } yield fish
 
-
   def log[A](a: A): Unit = println(a)
 
   @tailrec
-  def goFishingLogging[A](actions: Free[Action, Unit], unit: Unit): Unit = actions match {
+  def goFishingLogging(actions: Free[Action, Unit], unit: Unit): Unit = actions match {
     case Suspend(BuyBate(name, f)) => goFishingLogging(f(Bate(name)), log(s"Buying bate $name"))
     case Suspend(CastLine(bate, f)) => goFishingLogging(f(Line(bate.name.length)), log(s"Casting line with ${bate.name}"))
     case Suspend(HookFish(line, f)) => goFishingLogging(f(Fish("CatFish")), log(s"Hooking fish from ${line.length} feet"))
-    case Done(a) => ()
+    case Done(_) => ()
   }
 
   goFishingLogging(catchFish("Crankbait").map(_ => ()), ())
 
+  @tailrec
+  def goFishingAcc[A](actions: Free[Action, A], log: List[AnyVal]): List[AnyVal] = actions match {
+    case Suspend(BuyBate(name, f)) =>
+      val bate = Bate(name)
+      goFishingAcc(f(bate), bate :: log)
+    case Suspend(CastLine(bate, f)) =>
+      val line = Line(bate.name.length)
+      goFishingAcc(f(line), line :: log)
+    case Suspend(HookFish(line, f)) =>
+      val fish = Fish(s"CatFish from ($line)")
+      goFishingAcc(f(fish), fish :: log)
+    case Done(a) => log
+  }
+
+  val log = goFishingAcc(catchFish("Crankbait"), Nil)
+  println(log)
 }
