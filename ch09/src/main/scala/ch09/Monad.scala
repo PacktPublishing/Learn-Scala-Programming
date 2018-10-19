@@ -4,6 +4,7 @@ import ch07.Monoid
 import ch08.Applicative
 
 import scala.annotation.tailrec
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.{higherKinds, implicitConversions}
 import scala.util.{Failure, Success, Try}
 
@@ -91,6 +92,13 @@ object Monad {
   implicit def writerMonad[W : Monoid] = new Monad[Writer[W, ?]] {
     override def unit[A](a: => A): Writer[W, A] = Writer(a)
     override def flatMap[A, B](a: Writer[W, A])(f: A => Writer[W, B]): Writer[W, B] = a.compose(f)
+  }
+
+  // strictly speaking, Future is not a monad because it does not satisfy monadic laws
+  implicit def futureMonad(implicit ec: ExecutionContext) = new Monad[Future] {
+    override def unit[A](a: => A): Future[A] = Future(a)
+    override def flatMap[A, B](a: Future[A])(f: A => Future[B]): Future[B] =
+      a.flatMap(f)
   }
 
   object lowPriorityImplicits {
