@@ -1,7 +1,6 @@
 package ch10
 
 import ch09.Monad
-import ch10.Ch10.Ch06Composed.castLineFO
 import ch10.Ch10.Fish
 
 import scala.concurrent.Future
