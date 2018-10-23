@@ -2,7 +2,7 @@
 import org.scalacheck._
 import org.scalacheck.Prop._
 
-object Properties extends App {
+object Properties {
 
   object Introduction {
     val stringLengthProp: Prop = forAll { (_: String).length >= 0 }
@@ -76,7 +76,8 @@ object Properties extends App {
 
     forAll { a: String =>
       classify(a.isEmpty, "empty string", "non-empty string") {
-        a.sorted.length ?= a.length
+        val result = a.sorted.length == a.length
+        result
       }
     }.check()
 
@@ -96,6 +97,5 @@ object Properties extends App {
       all(multiplicationLaws, stringProps)
     }.check()
   }
-
 
 }
