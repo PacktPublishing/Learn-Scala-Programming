@@ -1,5 +1,3 @@
-import java.util.UUID
-
 import org.scalacheck.{Arbitrary, Gen, Prop}
 import org.scalacheck.Prop.forAll
 

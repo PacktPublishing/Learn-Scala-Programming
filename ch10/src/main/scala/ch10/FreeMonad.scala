@@ -1,7 +1,6 @@
 package ch10
 
 import ch08.Functor
-import ch10.FreeMonad.log
 
 import scala.annotation.tailrec
 import scala.language.higherKinds
