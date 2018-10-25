@@ -16,7 +16,7 @@ object TransformerStacks {
 
 }
 
-object Ch10OptionTEitherTFutureFishing extends FishingApi[Stack[?]] with App {
+object Ch10OptionTEitherTFutureFishing extends FishingApi[Stack[?]] {
 
   val buyBateImpl: String => Future[Bate] = ???
   val castLineImpl: Bate => Either[String, Line] = ???

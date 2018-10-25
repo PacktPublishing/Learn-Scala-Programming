@@ -73,7 +73,7 @@ import Transformers.OptionTMonad
 import ch09.Monad.futureMonad
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object Ch10FutureFishing extends FishingApi[OptionT[Future, ?]] with App {
+object Ch10FutureFishing extends FishingApi[OptionT[Future, ?]] {
 
   val buyBateImpl: String => Future[Bate] = ???
   val castLineImpl: Bate => Option[Line] = ???
@@ -87,7 +87,7 @@ object Ch10FutureFishing extends FishingApi[OptionT[Future, ?]] with App {
 
 }
 
-object Ch10OptionTTryFishing extends FishingApi[OptionT[Try, ?]] with App {
+object Ch10OptionTTryFishing extends FishingApi[OptionT[Try, ?]] {
 
   val buyBateImpl: String => Try[Bate] = ???
   val castLineImpl: Bate => Option[Line] = ???
@@ -101,7 +101,7 @@ object Ch10OptionTTryFishing extends FishingApi[OptionT[Try, ?]] with App {
 
 }
 
-object Ch10EitherTFutureFishing extends FishingApi[EitherT[Future, String, ?]] with App {
+object Ch10EitherTFutureFishing extends FishingApi[EitherT[Future, String, ?]] {
 
   val buyBateImpl: String => Future[Bate] = ???
   val castLineImpl: Bate => Either[String, Line] = ???

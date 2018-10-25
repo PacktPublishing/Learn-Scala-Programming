@@ -39,7 +39,7 @@ object Assessments {
   import ch09.Monad.futureMonad
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  object Ch10FutureTryFishing extends FishingApi[TryT[Future, ?]] with App {
+  object Ch10FutureTryFishing extends FishingApi[TryT[Future, ?]] {
 
     val buyBateImpl: String => Future[Bate] = ???
     val castLineImpl: Bate => Try[Line] = ???
@@ -59,7 +59,7 @@ object Assessments {
   type Outer[F[_], A] = EitherT[F, String, A]
   type Stack[A] = Outer[Inner, A]
 
-  object Ch10EitherTOptionTFutureFishing extends FishingApi[Stack[?]] with App {
+  object Ch10EitherTOptionTFutureFishing extends FishingApi[Stack[?]] {
 
     val buyBateImpl: String => Future[Bate] = ???
     val castLineImpl: Bate => Either[String, Line] = ???
