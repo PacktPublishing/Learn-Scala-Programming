@@ -151,7 +151,7 @@ object Ch10 {
 
 }
 
-object Ch09 extends App {
+object Ch09 {
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
