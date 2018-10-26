@@ -1,7 +1,11 @@
 package ch01
 
 import java.util.concurrent.atomic.AtomicLong
+
 import scala.io.StdIn
+import scala.util.{Try, Using}
+
+case class User(name: String, surname: String, email: String)
 
 object Ch01 extends App {
 
@@ -29,10 +33,7 @@ object Ch01 extends App {
 
   naiveToJsonString(user)
 
-
   import scala.util.chaining._
-
-
 
   import UserDb._
   val userId = 1L
@@ -40,26 +41,38 @@ object Ch01 extends App {
 
   getById(userId).pipe(update).pipe(save)
 
-  val getByIdUpdateAndSave = (getById _).andThen(update).andThen(save)
-  getByIdUpdateAndSave(userId)
-
+  val doEverything = (getById _).andThen(update).andThen(save)
+  doEverything(userId)
 
   val lastTick = new AtomicLong(0)
   def start(): Unit = lastTick.set(System.currentTimeMillis())
   def measure[A](a: A): Unit = {
     val now = System.currentTimeMillis()
     val before = lastTick.getAndSet(now)
-    println(s"$a: ${now-before} ms elapsed")
+    println(s"$a: ${now - before} ms elapsed")
   }
 
   start()
   val result = StdIn.readLine().pipe(_.toIntOption).tap(measure)
   val anotherResult = StdIn.readLine().pipe(_.toIntOption).tap(measure)
 
-  
+  final case class Resource(name: String) extends AutoCloseable {
+    override def close(): Unit = println(s"Closing $name")
+    def lines = List(s"$name line 1", s"$name line 2")
+  }
+  val List(r1, r2, r3) = List("first", "2", "3").map(Resource)
+
+  val lines: Try[Seq[String]] = for {
+    u1 <- Using(r1)
+    u2 <- Using(r2)
+    u3 <- Using(r3)
+  } yield {
+    u1.lines ++ u2.lines ++ u3.lines
+  }
+
+  println(lines)
 
 }
-case class User(name: String, surname: String, email: String)
 
 object UserDb {
   def getById(id: Long): User = ???
