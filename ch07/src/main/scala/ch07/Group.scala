@@ -3,7 +3,6 @@ package ch07
 trait Group[S] extends Monoid[S] {
   def inverse(a: S): S
 }
-trait AbelianGrou
 
 object Group {
 

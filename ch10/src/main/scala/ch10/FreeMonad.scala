@@ -16,7 +16,7 @@ object FreeMonad extends App {
   final case class CastLine[A](bate: Bate, f: Line => A) extends Action[A]
   final case class HookFish[A](line: Line, f: Fish => A) extends Action[A]
 
-  // assesment
+  // assessment
   final case class ReleaseFish[A](fish: Fish, f: Unit => A) extends Action[A]
 
   final case class Done[F[_]: Functor, A](a: A) extends Free[F, A]
@@ -30,7 +30,7 @@ object FreeMonad extends App {
     def map[B](f: A => B): Free[F, B] = flatMap(a => Done(f(a)))
   }
 
-  implicit val actionFunctor: Functor[Action] = new Functor[Action] {
+  implicit lazy val actionFunctor: Functor[Action] = new Functor[Action] {
     override def map[A, B](in: Action[A])(f: A => B): Action[B] = in match {
       case BuyBate(name, a) => BuyBate(name, x => f(a(x)))
       case CastLine(bate, a) => CastLine(bate, x => f(a(x)))
@@ -91,7 +91,7 @@ object FreeMonad extends App {
 
   }
 
-  val log = goFishingAcc(catchFish("Crankbait"), Nil)
+  lazy val log = goFishingAcc(catchFish("Crankbait"), Nil)
   println(log)
 
 }
