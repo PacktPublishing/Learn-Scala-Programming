@@ -61,10 +61,11 @@ object ApplicativeSpecification extends Properties("Applicative") {
                                  arbB: Arbitrary[B],
                                  arbC: Arbitrary[C],
                                  cogenA: Cogen[A],
-                                 cogenB: Cogen[B]): Prop =
+                                 cogenB: Cogen[B]): Prop = {
     identityProp[A, F] && homomorphism[A, B, F] &&
       interchange[A, B, F] && composition[A, B, C, F] &&
-      FunctorSpecification.functor[A, B, C, F]
+      ch08.FunctorSpecification.functor[A, B, C, F]
+  }
 
   import Applicative._
 
