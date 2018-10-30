@@ -2,9 +2,9 @@ organization := "packt"
 version := "1.0-SNAPSHOT"
 scalaVersion := "2.13.0-M5"
 
-lazy val ch08 = RootProject(file("../ch08"))
+lazy val ch08 = RootProject(file("../Chapter08"))
 
-lazy val ch09 = RootProject(file("../ch09"))
+lazy val ch09 = RootProject(file("../Chapter09"))
 
 lazy val ch10 = project.in(file(".")).settings(
   scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked"),
