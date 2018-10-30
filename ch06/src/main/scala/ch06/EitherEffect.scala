@@ -50,24 +50,24 @@ trait FishingEitherExample {
   import Effects._
 
   trait plain {
-    val buyBate: String => Bate
-    val makeBate: String => Bate
-    val castLine: Bate => Line
+    val buyBait: String => Bait
+    val makeBait: String => Bait
+    val castLine: Bait => Line
     val hookFish: Line => Fish
-    def goFishing(bestBateForFishOrCurse: Either[String, String]): Either[String, Fish] =
-      bestBateForFishOrCurse.map(buyBate).map(castLine).map(hookFish)
+    def goFishing(bestBaitForFishOrCurse: Either[String, String]): Either[String, Fish] =
+      bestBaitForFishOrCurse.map(buyBait).map(castLine).map(hookFish)
   }
 
   trait flat {
-    val buyBate: String => Either[String, Bate]
-    val makeBate: String => Either[String, Bate]
-    val castLine: Bate => Either[String, Line]
+    val buyBait: String => Either[String, Bait]
+    val makeBait: String => Either[String, Bait]
+    val castLine: Bait => Either[String, Line]
     val hookFish: Line => Either[String, Fish]
 
-    def goFishing(bestBateForFishOrCurse: Either[String, String]): Either[String, Fish] = for {
-      bateName <- bestBateForFishOrCurse
-      bate <- buyBate(bateName).fold(_ => makeBate(bateName), Right(_))
-      line <- castLine(bate)
+    def goFishing(bestBaitForFishOrCurse: Either[String, String]): Either[String, Fish] = for {
+      baitName <- bestBaitForFishOrCurse
+      bait <- buyBait(baitName).fold(_ => makeBait(baitName), Right(_))
+      line <- castLine(bait)
       fish <- hookFish(line)
     } yield fish
 

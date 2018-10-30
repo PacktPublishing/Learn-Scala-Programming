@@ -2,7 +2,7 @@ package ch06
 
 object Effects extends App {
 
-  type Bate
+  type Bait
   type Line
   type Fish
 

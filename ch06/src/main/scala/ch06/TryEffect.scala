@@ -48,24 +48,24 @@ trait FishingTryExample {
   import Effects._
 
   trait plain {
-    val buyBate: String => Bate
-    val makeBate: String => Bate
-    val castLine: Bate => Line
+    val buyBait: String => Bait
+    val makeBait: String => Bait
+    val castLine: Bait => Line
     val hookFish: Line => Fish
-    def goFishing(bestBateForFishOrCurse: Try[String]): Try[Fish] =
-      bestBateForFishOrCurse.map(buyBate).map(castLine).map(hookFish)
+    def goFishing(bestBaitForFishOrCurse: Try[String]): Try[Fish] =
+      bestBaitForFishOrCurse.map(buyBait).map(castLine).map(hookFish)
   }
 
   trait flat {
-    val buyBate: String => Try[Bate]
-    val makeBate: String => Try[Bate]
-    val castLine: Bate => Try[Line]
+    val buyBait: String => Try[Bait]
+    val makeBait: String => Try[Bait]
+    val castLine: Bait => Try[Line]
     val hookFish: Line => Try[Fish]
 
-    def goFishing(bestBateForFishOrCurse: Try[String]): Try[Fish] = for {
-      bateName <- bestBateForFishOrCurse
-      bate <- buyBate(bateName).fold(_ => makeBate(bateName), Success(_))
-      line <- castLine(bate)
+    def goFishing(bestBaitForFishOrCurse: Try[String]): Try[Fish] = for {
+      baitName <- bestBaitForFishOrCurse
+      bait <- buyBait(baitName).fold(_ => makeBait(baitName), Success(_))
+      line <- castLine(bait)
       fish <- hookFish(line)
     } yield fish
   }

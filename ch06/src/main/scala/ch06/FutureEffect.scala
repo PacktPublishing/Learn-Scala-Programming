@@ -50,24 +50,24 @@ trait FishingFutureExample {
   import Effects._
 
   trait plain {
-    val buyBate: String => Bate
-    val makeBate: String => Bate
-    val castLine: Bate => Line
+    val buyBait: String => Bait
+    val makeBait: String => Bait
+    val castLine: Bait => Line
     val hookFish: Line => Fish
-    def goFishing(bestBateForFish: Future[String]): Future[Fish] =
-      bestBateForFish.map(buyBate).map(castLine).map(hookFish)
+    def goFishing(bestBaitForFish: Future[String]): Future[Fish] =
+      bestBaitForFish.map(buyBait).map(castLine).map(hookFish)
   }
 
   trait flat {
-    val buyBate: String => Future[Bate]
-    val makeBate: String => Future[Bate]
-    val castLine: Bate => Future[Line]
+    val buyBait: String => Future[Bait]
+    val makeBait: String => Future[Bait]
+    val castLine: Bait => Future[Line]
     val hookFish: Line => Future[Fish]
 
-    def goFishing(bestBateForFish: Future[String]): Future[Fish] = for {
-      bateName <- bestBateForFish
-      bate <- buyBate(bateName).fallbackTo(makeBate(bateName))
-      line <- castLine(bate)
+    def goFishing(bestBaitForFish: Future[String]): Future[Fish] = for {
+      baitName <- bestBaitForFish
+      bait <- buyBait(baitName).fallbackTo(makeBait(baitName))
+      line <- castLine(bait)
       fish <- hookFish(line)
     } yield fish
 

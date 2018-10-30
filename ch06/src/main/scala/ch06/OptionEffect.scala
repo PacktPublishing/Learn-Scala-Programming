@@ -52,29 +52,29 @@ trait FishingOptionExample {
 
   import Effects._
   trait plain {
-    val buyBate: String => Bate
-    val makeBate: String => Bate
-    val castLine: Bate => Line
+    val buyBait: String => Bait
+    val makeBait: String => Bait
+    val castLine: Bait => Line
     val hookFish: Line => Fish
 
-    def goFishing(bestBateForFish: Option[String]): Option[Fish] =
-      bestBateForFish.map(buyBate).map(castLine).map(hookFish)
+    def goFishing(bestBaitForFish: Option[String]): Option[Fish] =
+      bestBaitForFish.map(buyBait).map(castLine).map(hookFish)
   }
 
   trait flat {
-    val buyBate: String => Option[Bate]
-    val makeBate: String => Option[Bate]
-    val castLine: Bate => Option[Line]
+    val buyBait: String => Option[Bait]
+    val makeBait: String => Option[Bait]
+    val castLine: Bait => Option[Line]
     val hookFish: Line => Option[Fish]
 
-    def goFishingOld(bestBateForFish: Option[String]): Option[Fish] =
-      bestBateForFish.flatMap(buyBate).flatMap(castLine).flatMap(hookFish)
+    def goFishingOld(bestBaitForFish: Option[String]): Option[Fish] =
+      bestBaitForFish.flatMap(buyBait).flatMap(castLine).flatMap(hookFish)
 
-    def goFishing(bestBateForFish: Option[String]): Option[Fish] =
+    def goFishing(bestBaitForFish: Option[String]): Option[Fish] =
       for {
-        bateName <- bestBateForFish
-        bate <- buyBate(bateName).orElse(makeBate(bateName))
-        line <- castLine(bate)
+        baitName <- bestBaitForFish
+        bait <- buyBait(baitName).orElse(makeBait(baitName))
+        line <- castLine(bait)
         fish <- hookFish(line)
       } yield fish
   }
