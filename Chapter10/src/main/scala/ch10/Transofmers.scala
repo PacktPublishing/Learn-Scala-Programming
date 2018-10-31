@@ -2,12 +2,12 @@ package ch10
 
 import ch09.Monad
 import ch09.Monad.lowPriorityImplicits._
-import ch10.Ch10.{Bate, Fish, Line}
+import ch10.Ch10.{Bait, Fish, Line}
 import ch10.Transformers.{EitherT, OptionT}
 
 import scala.concurrent.Future
 import scala.language.higherKinds
-import scala.util.Try
+import scala.util.{Success, Try}
 
 object Transformers {
 
@@ -57,14 +57,14 @@ object Transformers {
 
 abstract class FishingApi[F[_]: Monad] {
 
-  val buyBate: String => F[Bate]
-  val castLine: Bate => F[Line]
+  val buyBait: String => F[Bait]
+  val castLine: Bait => F[Line]
   val hookFish: Line => F[Fish]
 
-  def goFishing(bestBateForFish: F[String]): F[Fish] = for {
-    name <- bestBateForFish
-    bate <- buyBate(name)
-    line <- castLine(bate)
+  def goFishing(bestBaitForFish: F[String]): F[Fish] = for {
+    name <- bestBaitForFish
+    bait <- buyBait(name)
+    line <- castLine(bait)
     fish <- hookFish(line)
   } yield fish
 }
@@ -75,12 +75,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object Ch10FutureFishing extends FishingApi[OptionT[Future, ?]] {
 
-  val buyBateImpl: String => Future[Bate] = ???
-  val castLineImpl: Bate => Option[Line] = ???
-  val hookFishImpl: Line => Future[Fish] = ???
+  val buyBaitImpl: String => Future[Bait] = Future.successful
+  val castLineImpl: Bait => Option[Line] = Option.apply
+  val hookFishImpl: Line => Future[Fish] = Future.successful
 
-  override val buyBate: String => OptionT[Future, Bate] = (name: String) => buyBateImpl(name).map(Option.apply)
-  override val castLine: Bate => OptionT[Future, Line] = castLineImpl.andThen(Future.successful(_))
+  override val buyBait: String => OptionT[Future, Bait] = (name: String) => buyBaitImpl(name).map(Option.apply)
+  override val castLine: Bait => OptionT[Future, Line] = castLineImpl.andThen(Future.successful(_))
   override val hookFish: Line => OptionT[Future, Fish] = (line: Line) => hookFishImpl(line).map(Option.apply)
 
   goFishing(Transformers.optionTunit[Future, String]("Crankbait"))
@@ -89,12 +89,12 @@ object Ch10FutureFishing extends FishingApi[OptionT[Future, ?]] {
 
 object Ch10OptionTTryFishing extends FishingApi[OptionT[Try, ?]] {
 
-  val buyBateImpl: String => Try[Bate] = ???
-  val castLineImpl: Bate => Option[Line] = ???
-  val hookFishImpl: Line => Try[Fish] = ???
+  val buyBaitImpl: String => Try[Bait] = Success.apply
+  val castLineImpl: Bait => Option[Line] = Option.apply
+  val hookFishImpl: Line => Try[Fish] = Success.apply
 
-  override val buyBate: String => OptionT[Try, Bate] = (name: String) => buyBateImpl(name).map(Option.apply)
-  override val castLine: Bate => OptionT[Try, Line] = castLineImpl.andThen(Try.apply(_))
+  override val buyBait: String => OptionT[Try, Bait] = (name: String) => buyBaitImpl(name).map(Option.apply)
+  override val castLine: Bait => OptionT[Try, Line] = castLineImpl.andThen(Try.apply(_))
   override val hookFish: Line => OptionT[Try, Fish] = (line: Line) => hookFishImpl(line).map(Option.apply)
 
   goFishing(Transformers.optionTunit[Try, String]("Crankbait"))
@@ -103,13 +103,13 @@ object Ch10OptionTTryFishing extends FishingApi[OptionT[Try, ?]] {
 
 object Ch10EitherTFutureFishing extends FishingApi[EitherT[Future, String, ?]] {
 
-  val buyBateImpl: String => Future[Bate] = ???
-  val castLineImpl: Bate => Either[String, Line] = ???
-  val hookFishImpl: Line => Future[Fish] = ???
+  val buyBaitImpl: String => Future[Bait] = Future.successful
+  val castLineImpl: Bait => Either[String, Line] = Right.apply
+  val hookFishImpl: Line => Future[Fish] = Future.successful
 
-  override val buyBate: String => EitherT[Future, String, Bate] =
-    (name: String) => buyBateImpl(name).map(l => Right(l): Either[String, Bate])
-  override val castLine: Bate => EitherT[Future, String, Line] =
+  override val buyBait: String => EitherT[Future, String, Bait] =
+    (name: String) => buyBaitImpl(name).map(l => Right(l): Either[String, Bait])
+  override val castLine: Bait => EitherT[Future, String, Line] =
     castLineImpl.andThen(Future.successful(_))
   override val hookFish: Line => EitherT[Future, String, Fish] =
     (line: Line) => hookFishImpl(line).map(l => Right(l): Either[String, Fish])

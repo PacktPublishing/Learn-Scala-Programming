@@ -18,15 +18,15 @@ object TransformerStacks {
 
 object Ch10OptionTEitherTFutureFishing extends FishingApi[Stack[?]] {
 
-  val buyBateImpl: String => Future[Bate] = ???
-  val castLineImpl: Bate => Either[String, Line] = ???
+  val buyBaitImpl: String => Future[Bait] = ???
+  val castLineImpl: Bait => Either[String, Line] = ???
   val hookFishImpl: Line => Future[Fish] = ???
 
-  override val castLine: Bate => Stack[Line] =
-    (bate: Bate) => new EitherT(Future.successful(castLineImpl(bate).map(Option.apply)))
+  override val castLine: Bait => Stack[Line] =
+    (bait: Bait) => new EitherT(Future.successful(castLineImpl(bait).map(Option.apply)))
 
-  override val buyBate: String => Stack[Bate] =
-    (name: String) => new EitherT(buyBateImpl(name).map(l => Right(Option(l)): Either[String, Option[Bate]]))
+  override val buyBait: String => Stack[Bait] =
+    (name: String) => new EitherT(buyBaitImpl(name).map(l => Right(Option(l)): Either[String, Option[Bait]]))
 
   override val hookFish: Line => Stack[Fish] =
     (line: Line) => new EitherT(hookFishImpl(line).map(l => Right(Option(l)): Either[String, Option[Fish]]))

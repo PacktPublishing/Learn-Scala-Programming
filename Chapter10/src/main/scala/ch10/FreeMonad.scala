@@ -7,13 +7,13 @@ import scala.language.higherKinds
 
 object FreeMonad extends App {
 
-  case class Bate(name: String) extends AnyVal
+  case class Bait(name: String) extends AnyVal
   case class Line(length: Int) extends AnyVal
   case class Fish(name: String) extends AnyVal
 
   sealed trait Action[A]
-  final case class BuyBate[A](name: String, f: Bate => A) extends Action[A]
-  final case class CastLine[A](bate: Bate, f: Line => A) extends Action[A]
+  final case class BuyBait[A](name: String, f: Bait => A) extends Action[A]
+  final case class CastLine[A](bait: Bait, f: Line => A) extends Action[A]
   final case class HookFish[A](line: Line, f: Fish => A) extends Action[A]
 
   // assessment
@@ -32,24 +32,24 @@ object FreeMonad extends App {
 
   implicit lazy val actionFunctor: Functor[Action] = new Functor[Action] {
     override def map[A, B](in: Action[A])(f: A => B): Action[B] = in match {
-      case BuyBate(name, a) => BuyBate(name, x => f(a(x)))
-      case CastLine(bate, a) => CastLine(bate, x => f(a(x)))
+      case BuyBait(name, a) => BuyBait(name, x => f(a(x)))
+      case CastLine(bait, a) => CastLine(bait, x => f(a(x)))
       case HookFish(line, a) => HookFish(line, x => f(a(x)))
       // assessment
       case ReleaseFish(fish, a) => ReleaseFish(fish, x => f(a(x)))
     }
   }
 
-  def buyBate(name: String): Free[Action, Bate] = Join(BuyBate(name, bate => Done(bate)))
-  def castLine(bate: Bate): Free[Action, Line] = Join(CastLine(bate, line => Done(line)))
+  def buyBait(name: String): Free[Action, Bait] = Join(BuyBait(name, bait => Done(bait)))
+  def castLine(bait: Bait): Free[Action, Line] = Join(CastLine(bait, line => Done(line)))
   def hookFish(line: Line): Free[Action, Fish] = Join(HookFish(line, fish => Done(fish)))
 
   // assessment
   def releaseFish(fish: Fish): Free[Action, Unit] = Join(ReleaseFish(fish, _ => Done(())))
 
-  def catchFish(bateName: String): Free[Action, _] = for {
-    bate <- buyBate(bateName)
-    line <- castLine(bate)
+  def catchFish(baitName: String): Free[Action, _] = for {
+    bait <- buyBait(baitName)
+    line <- castLine(bait)
     fish <- hookFish(line)
     _ <- releaseFish(fish)
   } yield ()
@@ -58,10 +58,10 @@ object FreeMonad extends App {
 
   @tailrec
   def goFishingLogging[A](actions: Free[Action, A], unit: Unit): A = actions match {
-    case Join(BuyBate(name, f)) =>
-      goFishingLogging(f(Bate(name)), log(s"Buying bate $name"))
-    case Join(CastLine(bate, f)) =>
-      goFishingLogging(f(Line(bate.name.length)), log(s"Casting line with ${bate.name}"))
+    case Join(BuyBait(name, f)) =>
+      goFishingLogging(f(Bait(name)), log(s"Buying bait $name"))
+    case Join(CastLine(bait, f)) =>
+      goFishingLogging(f(Line(bait.name.length)), log(s"Casting line with ${bait.name}"))
     case Join(HookFish(line, f)) =>
       goFishingLogging(f(Fish("CatFish")), log(s"Hooking fish from ${line.length} feet"))
     case Done(fish) => fish
@@ -75,11 +75,11 @@ object FreeMonad extends App {
 
   @tailrec
   def goFishingAcc[A](actions: Free[Action, A], log: List[AnyVal]): List[AnyVal] = actions match {
-    case Join(BuyBate(name, f)) =>
-      val bate = Bate(name)
-      goFishingAcc(f(bate), bate :: log)
-    case Join(CastLine(bate, f)) =>
-      val line = Line(bate.name.length)
+    case Join(BuyBait(name, f)) =>
+      val bait = Bait(name)
+      goFishingAcc(f(bait), bait :: log)
+    case Join(CastLine(bait, f)) =>
+      val line = Line(bait.name.length)
       goFishingAcc(f(line), line :: log)
     case Join(HookFish(line, f)) =>
       val fish = Fish(s"CatFish from ($line)")

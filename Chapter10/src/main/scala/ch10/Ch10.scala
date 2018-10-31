@@ -8,39 +8,39 @@ import scala.language.higherKinds
 
 object Ch10 {
 
-  type Bate
-  type Line
-  type Fish
+  type Bait = String
+  type Line = String
+  type Fish = String
 
   object ch06 {
-    val buyBate: String => Option[Bate] = ???
-    val makeBate: String => Option[Bate] = ???
-    val castLine: Bate => Option[Line] = ???
-    val hookFish: Line => Option[Fish] = ???
+    val buyBait: String => Option[Bait] = Option.apply
+    val makeBait: String => Option[Bait] = Option.apply
+    val castLine: Bait => Option[Line] = Option.apply
+    val hookFish: Line => Option[Fish] = Option.apply
 
-    def goFishing(bestBateForFish: Option[String]): Option[Fish] =
+    def goFishing(bestBaitForFish: Option[String]): Option[Fish] =
       for {
-        bateName <- bestBateForFish
-        bate <- buyBate(bateName).orElse(makeBate(bateName))
-        line <- castLine(bate)
+        baitName <- bestBaitForFish
+        bait <- buyBait(baitName).orElse(makeBait(baitName))
+        line <- castLine(bait)
         fish <- hookFish(line)
       } yield fish
   }
 
-  def goFishing[M[_] : Monad, N[_] : Monad](bestBateForFish: M[String]): M[N[M[N[Fish]]]] = {
+  def goFishing[M[_] : Monad, N[_] : Monad](bestBaitForFish: M[String]): M[N[M[N[Fish]]]] = {
 
-    val buyBate: String => N[Bate] = ???
-    val castLine: Bate => M[Line] = ???
+    val buyBait: String => N[Bait] = ???
+    val castLine: Bait => M[Line] = ???
     val hookFish: Line => N[Fish] = ???
 
     import Monad.lowPriorityImplicits._
 
     for {
-      bateName <- bestBateForFish
+      baitName <- bestBaitForFish
     } yield for {
-      bate <- buyBate(bateName)
+      bait <- buyBait(baitName)
     } yield for {
-      line <- castLine(bate)
+      line <- castLine(bait)
     } yield for {
       fish <- hookFish(line)
     } yield fish
@@ -50,15 +50,15 @@ object Ch10 {
 
     import scala.concurrent.ExecutionContext.Implicits.global
 
-    val buyBate: String => Future[Bate] = ???
-    val castLine: Bate => Option[Line] = ???
-    val hookFish: Line => Future[Fish] = ???
+    val buyBait: String => Future[Bait] = Future.successful
+    val castLine: Bait => Option[Line] = Option.apply
+    val hookFish: Line => Future[Fish] = Future.successful
 
-    def goFishing(bestBateForFish: Option[String]): Future[Fish] =
-      bestBateForFish match {
+    def goFishing(bestBaitForFish: Option[String]): Future[Fish] =
+      bestBaitForFish match {
         case None => Future.failed(new NoSuchElementException)
-        case Some(name) => buyBate(name).flatMap { bate: Bate =>
-          castLine(bate) match {
+        case Some(name) => buyBait(name).flatMap { bait: Bait =>
+          castLine(bait) match {
             case None => Future.failed(new IllegalStateException)
             case Some(line) => hookFish(line)
           }
@@ -70,21 +70,21 @@ object Ch10 {
 
     import scala.concurrent.ExecutionContext.Implicits.global
 
-    val buyBate: String => Future[Bate] = ???
-    val castLine: Bate => Option[Line] = ???
+    val buyBait: String => Future[Bait] = ???
+    val castLine: Bait => Option[Line] = ???
     val hookFish: Line => Future[Fish] = ???
 
-    val buyBateFO: String => Future[Option[Bate]] = (name: String) => buyBate(name).map(Option.apply)
-    val castLineFO: Bate => Future[Option[Line]] = castLine.andThen(Future.successful)
+    val buyBaitFO: String => Future[Option[Bait]] = (name: String) => buyBait(name).map(Option.apply)
+    val castLineFO: Bait => Future[Option[Line]] = castLine.andThen(Future.successful)
     val hookFishFO: Line => Future[Option[Fish]] = (line: Line) => hookFish(line).map(Option.apply)
 
 
-    def goFishingA(bestBateForFish: Future[Option[String]]): Future[Option[Fish]] =
-      bestBateForFish.flatMap {
+    def goFishingA(bestBaitForFish: Future[Option[String]]): Future[Option[Fish]] =
+      bestBaitForFish.flatMap {
         case None => Future.successful(Option.empty[Fish])
-        case Some(name) => buyBateFO(name).flatMap {
+        case Some(name) => buyBaitFO(name).flatMap {
           case None => Future.successful(Option.empty[Fish])
-          case Some(bate) => castLineFO(bate).flatMap {
+          case Some(bait) => castLineFO(bait).flatMap {
             case None => Future.successful(Option.empty[Fish])
             case Some(line) => hookFishFO(line)
           }
@@ -99,10 +99,10 @@ object Ch10 {
       case Some(a) => f(a)
     }
 
-    def goFishingB(bestBateForFish: Future[Option[String]]): Future[Option[Fish]] =
-      continue(bestBateForFish) { name =>
-        continue(buyBateFO(name)) { bate =>
-          continue(castLineFO(bate)) { line =>
+    def goFishingB(bestBaitForFish: Future[Option[String]]): Future[Option[Fish]] =
+      continue(bestBaitForFish) { name =>
+        continue(buyBaitFO(name)) { bait =>
+          continue(castLineFO(bait)) { line =>
             hookFishFO(line)
           }
         }
@@ -131,19 +131,19 @@ object Ch10 {
       override def flatMap[A, B](a: FOption[F, A])(f: A => FOption[F, B]): FOption[F, B] = a.compose(f)
     }
 
-    val buyBate: String => Future[Bate] = ???
-    val castLine: Bate => Option[Line] = ???
+    val buyBait: String => Future[Bait] = ???
+    val castLine: Bait => Option[Line] = ???
     val hookFish: Line => Future[Fish] = ???
 
-    val buyBateFO: String => FOption[Future, Bate] = (name: String) => buyBate(name).map(Option.apply)
-    val castLineFO: Bate => FOption[Future, Line] = castLine.andThen(line => Future.successful(line))
+    val buyBaitFO: String => FOption[Future, Bait] = (name: String) => buyBait(name).map(Option.apply)
+    val castLineFO: Bait => FOption[Future, Line] = castLine.andThen(line => Future.successful(line))
     val hookFishFO: Line => FOption[Future, Fish] = (line: Line) => hookFish(line).map(Option.apply)
 
 
-    def goFishingM(bestBateForFish: FOption[Future, String]): FOption[Future, Fish] = for {
-      name <- bestBateForFish
-      bate <- buyBateFO(name)
-      line <- castLineFO(bate)
+    def goFishingM(bestBaitForFish: FOption[Future, String]): FOption[Future, Fish] = for {
+      name <- bestBaitForFish
+      bait <- buyBaitFO(name)
+      line <- castLineFO(bait)
       fish <- hookFishFO(line)
     } yield fish
 
