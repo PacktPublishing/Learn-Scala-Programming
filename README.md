@@ -49,14 +49,15 @@ With the following software and hardware list you can run all code files present
 We also provide a PDF file that has color images of the screenshots/diagrams used in this book. [Click here to download it](http://www.packtpub.com/sites/default/files/downloads/9781788836302_ColorImages.pdf).
 
 ### Related products
-*  [[Packt]](https://www.packtpub.com/application-development/scala-reactive-programming?utm_source=github&utm_medium=repository&utm_campaign=) [[Amazon]](https://www.amazon.com/dp/1787288641)
+* Scala Reactive Programming [[Packt]](https://www.packtpub.com/application-development/scala-reactive-programming?utm_source=github&utm_medium=repository&utm_campaign=) [[Amazon]](https://www.amazon.com/dp/1787288641)
 
-*  [[Packt]](https://www.packtpub.com/application-development/scala-design-patterns-second-edition?utm_source=github&utm_medium=repository&utm_campaign=) [[Amazon]](https://www.amazon.com/dp/1785882503)
+* Scala Design Patterns - Second Edition [[Packt]](https://www.packtpub.com/application-development/scala-design-patterns-second-edition?utm_source=github&utm_medium=repository&utm_campaign=) [[Amazon]](https://www.amazon.com/dp/1785882503)
 
 ## Get to Know the Author
 **Slava Schmidt**
 is a software developer living in Germany. During his career, he has used a wide spectrum of programming languages, ranging from Assembler to Haskell, and progressed from an intern programmer, via head of engineering, to a Scala contractor. In his current role, he helps to develop and bring into production a number of Scala projects of various sizes and complexities for customers from different industries.
 He is a contributor to open source projects related to Scala and Akka. As a passionate conference speaker, he regularly gives talks about technologies to share his experiences with other developers.
 
-
+### Suggestions and Feedback
+[Click here](https://docs.google.com/forms/d/e/1FAIpQLSdy7dATC6QmEL81FIUuymZ0Wy9vH1jHkvpY57OiMeKGqib_Ow/viewform) if you have any feedback or suggestions.
 
