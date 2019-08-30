@@ -15,9 +15,12 @@ import org.scalatest._
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-class BakerySpec extends WordSpec with ActorTestKit with BeforeAndAfterAll {
+class BakerySpec
+    extends ScalaTestWithActorTestKit(ManualTime.config)
+    with WordSpecLike
+    with BeforeAndAfterAll {
 
-  override def afterAll: Unit = shutdownTestKit()
+  override def afterAll: Unit = super.afterAll()
 
   "The boy should" should {
     "forward given ShoppingList to the seller" in {
@@ -42,15 +45,17 @@ class BakerySpec extends WordSpec with ActorTestKit with BeforeAndAfterAll {
       val message = Mix(Groceries(1, 1, 1, 1), manager.ref)
       chef.run(message)
       chef.expectEffect(
-        Spawned(mixerFactory,
-                "Mixer_1",
-                DispatcherSelector.fromConfig("mixers-dispatcher")))
+        Spawned(
+          mixerFactory,
+          "Mixer_1",
+          DispatcherSelector.fromConfig("mixers-dispatcher")
+        )
+      )
       val expectedByMixer = Mixer.Mix(Groceries(1, 1, 1, 1), chef.ref)
       chef.childInbox("Mixer_1").expectMessage(expectedByMixer)
     }
   }
 
-  override def config: Config = ManualTime.config
   val manualTime: ManualTime = ManualTime()
 
   "The baker should" should {
@@ -60,8 +65,10 @@ class BakerySpec extends WordSpec with ActorTestKit with BeforeAndAfterAll {
       val baker = spawn(Baker.idle(oven.ref))
       baker ! BakeCookies(RawCookies(1), manager.ref)
       oven.expectMessage(Oven.Put(1, baker))
-      manualTime.expectNoMessageFor(Baker.DefaultBakingTime - 1.millisecond,
-                                    oven)
+      manualTime.expectNoMessageFor(
+        Baker.DefaultBakingTime - 1.millisecond,
+        oven
+      )
       manualTime.timePasses(Baker.DefaultBakingTime)
       oven.expectMessage(Extract(baker))
     }
