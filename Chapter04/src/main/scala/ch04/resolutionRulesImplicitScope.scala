@@ -23,9 +23,9 @@ object ChildA {
 
 trait Test {
   def test(a: ChildA) = {
-    val _: Int = a // companion object of ParentA
-    // val _: String = a // companion object of ChildA
-    // val _: Char = a // companion object of ParentB
+    val b: Int = a // companion object of ParentA
+    // val b: String = a // companion object of ChildA
+    // val b: Char = a // companion object of ParentB
   }
   def constructor[T: Ordering](in: T*): List[T] = in.toList.sorted // companion object of type constructor
   constructor(new ChildA("A"), new ChildA("B")).sorted // companion object of type parameters
