@@ -1,8 +1,8 @@
 # Learning Scala Programming
 
-<a href="https://www.packtpub.com/application-development/learning-scala-programming?utm_source=github&utm_medium=repository&utm_campaign=9781788392822 "><img src="https://d255esdrn735hr.cloudfront.net/sites/default/files/imagecache/ppv4_main_book_cover/B08291.png" alt="Learning Scala Programming" height="256px" align="right"></a>
+<a href="https://www.packtpub.com/application-development/learn-scala-programming?utm_source=github&utm_medium=repository&utm_campaign=9781788392822 "><img src="https://d255esdrn735hr.cloudfront.net/sites/default/files/imagecache/ppv4_main_book_cover/B08291.png" alt="Learning Scala Programming" height="256px" align="right"></a>
 
-This is the code repository for [Learning Scala Programming](https://www.packtpub.com/application-development/learning-scala-programming?utm_source=github&utm_medium=repository&utm_campaign=9781788392822 ), published by Packt.
+This is the code repository for [Learning Scala Programming](https://www.packtpub.com/application-development/learn-scala-programming?utm_source=github&utm_medium=repository&utm_campaign=9781788392822 ), published by Packt.
 
 **Learn how to write scalable and concurrent programs in Scala, a language that grows with you.**
 
