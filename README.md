@@ -1,3 +1,8 @@
+## $5 Tech Unlocked 2021!
+[Buy and download this Book for only $5 on PacktPub.com](https://www.packtpub.com/product/learn-scala-programming/9781788836302)
+-----
+*If you have read this book, please leave a review on [Amazon.com](https://www.amazon.com/gp/product/1788836308).     Potential readers can then use your unbiased opinion to help them make purchase decisions. Thank you. The $5 campaign         runs from __December 15th 2020__ to __January 13th 2021.__*
+
 # Learning Scala Programming
 
 <a href="https://www.packtpub.com/application-development/learn-scala-programming?utm_source=github&utm_medium=repository&utm_campaign=9781788392822 "><img src="https://www.packtpub.com/media/catalog/product/cache/4cdce5a811acc0d2926d7f857dceb83b/b/0/b09679_0.png" alt="Learning Scala Programming" height="256px" align="right"></a>
