@@ -62,11 +62,7 @@ object Ch01 extends App {
   }
   val List(r1, r2, r3) = List("first", "2", "3").map(Resource)
 
-  val lines: Try[Seq[String]] = for {
-    u1 <- Using(r1)
-    u2 <- Using(r2)
-    u3 <- Using(r3)
-  } yield {
+  val lines: Seq[String] = Using.resources(r1, r2, r3) { (u1, u2, u3) =>
     u1.lines ++ u2.lines ++ u3.lines
   }
 

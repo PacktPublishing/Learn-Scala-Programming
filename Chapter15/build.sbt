@@ -1,21 +1,27 @@
 organization in ThisBuild := "packt"
 version in ThisBuild := "1.0-SNAPSHOT"
 
-scalaVersion in ThisBuild := "2.12.7"
+scalaVersion in ThisBuild := "2.13.0"
 
-val macwire = "com.softwaremill.macwire" %% "macros" % "2.3.1" % Provided
-val scalaTest = "org.scalatest" %% "scalatest" % "3.0.5" % Test
+val macwire = "com.softwaremill.macwire" %% "macros" % "2.3.3" % Provided
+val scalaTest = "org.scalatest" %% "scalatest" % "3.0.8" % Test
 
 val defaultDependencies = Seq(lagomScaladslTestKit, macwire, scalaTest)
 
 lazy val bakery = (project in file("."))
   .aggregate(
     `shared-model`,
-    `boy-api`, `boy-impl`,
-    `chef-api`, `chef-impl`,
-    `cook-api`, `cook-impl`,
-    `baker-api`, `baker-impl`,
-    `manager-api`, `manager-impl`)
+    `boy-api`,
+    `boy-impl`,
+    `chef-api`,
+    `chef-impl`,
+    `cook-api`,
+    `cook-impl`,
+    `baker-api`,
+    `baker-impl`,
+    `manager-api`,
+    `manager-impl`
+  )
 
 lazy val `shared-model` = (project in file("shared-model"))
   .settings(libraryDependencies += lagomScaladslApi)
@@ -75,4 +81,6 @@ lazy val `manager-impl` = (project in file("manager-impl"))
   .settings(libraryDependencies += lagomScaladslKafkaBroker)
   .dependsOn(`manager-api`, `boy-api`, `chef-api`, `cook-api`, `baker-api`)
 
-lagomUnmanagedServices in ThisBuild := Map("GroceryShop" -> "http://localhost:8080")
+lagomUnmanagedServices in ThisBuild := Map(
+  "GroceryShop" -> "http://localhost:8080"
+)

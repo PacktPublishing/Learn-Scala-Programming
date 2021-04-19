@@ -13,7 +13,7 @@ object Recursion extends App {
     @scala.annotation.tailrec
     def reverse(s: String, acc: String): String =
       if (s.length < 2) s + acc
-      else reverse(s.tail, s.head + acc)
+      else reverse(s.tail, s"${s.head}$acc")
 
     reverse(s, "")
   }
@@ -23,8 +23,7 @@ object Recursion extends App {
     def reverse(s: String, acc: String): String =
       if (s.length < 2) {
         new Exception().printStackTrace(); s + acc
-      }
-      else reverse(s.tail, s.head + acc)
+      } else reverse(s.tail, s"${s.head}$acc")
 
     reverse(s, "")
   }
@@ -55,4 +54,3 @@ object Recursion extends App {
     def A(m: Int, n: Int): BigInt = tailA(m, n).result
   }
 }
-
