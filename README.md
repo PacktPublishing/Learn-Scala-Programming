@@ -1,7 +1,3 @@
-## [Get this title for $10 on Packt's Spring Sale](https://www.packt.com/B09679?utm_source=github&utm_medium=packt-github-repo&utm_campaign=spring_10_dollar_2022)
------
-For a limited period, all eBooks and Videos are only $10. All the practical content you need \- by developers, for developers
-
 # Learning Scala Programming
 
 <a href="https://www.packtpub.com/application-development/learn-scala-programming?utm_source=github&utm_medium=repository&utm_campaign=9781788392822 "><img src="https://www.packtpub.com/media/catalog/product/cache/4cdce5a811acc0d2926d7f857dceb83b/b/0/b09679_0.png" alt="Learning Scala Programming" height="256px" align="right"></a>
